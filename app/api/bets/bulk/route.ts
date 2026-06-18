@@ -6,15 +6,6 @@ export async function POST(request: Request) {
   try {
     const user = await requireAuth();
 
-    if (user.isPremium) {
-      const paid = await prisma.payment.findFirst({
-        where: { userId: user.id, status: "paid" },
-      });
-      if (!paid) {
-        return NextResponse.json({ error: "Confirme seu pagamento Premium antes de palpitar." }, { status: 403 });
-      }
-    }
-
     const groupStageEnd = new Date("2026-06-28T00:00:00-03:00");
     if (new Date() > groupStageEnd) {
       return NextResponse.json({ error: "Prazo encerrado. Não é mais possível palpitar." }, { status: 403 });
