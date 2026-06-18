@@ -3,8 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const totalPremium = await prisma.payment.count({ where: { status: "paid" } });
-    const grossTotal = totalPremium * 50;
+    const paidPayments = await prisma.payment.findMany({
+      where: { status: "paid" },
+      select: { amount: true },
+    });
+    const totalPremium = paidPayments.length;
+    const grossTotal = paidPayments.reduce((sum, p) => sum + p.amount, 0);
     const prize = grossTotal * 0.8;
 
     return NextResponse.json({ totalPremium, grossTotal, prize });

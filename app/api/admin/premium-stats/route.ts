@@ -6,9 +6,13 @@ export async function GET() {
   try {
     await requireAdmin();
 
-    const totalPremium = await prisma.payment.count({ where: { status: "paid" } });
+    const paidPayments = await prisma.payment.findMany({
+      where: { status: "paid" },
+      select: { amount: true },
+    });
+    const totalPremium = paidPayments.length;
     const totalPending = await prisma.payment.count({ where: { status: "pending" } });
-    const grossTotal = totalPremium * 50;
+    const grossTotal = paidPayments.reduce((sum, p) => sum + p.amount, 0);
     const fee = grossTotal * 0.2;
     const prize = grossTotal - fee;
 
