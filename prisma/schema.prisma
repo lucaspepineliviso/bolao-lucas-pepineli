@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      String    @default("USER")
+  isPremium Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  points    Int       @default(0)
+  bets      Bet[]
+  payments  Payment[]
+}
+
+model Match {
+  id        Int      @id @default(autoincrement())
+  homeTeam  String
+  awayTeam  String
+  matchDate DateTime
+  stage     String
+  groupName String?
+  homeScore Int?
+  awayScore Int?
+  isFinished Boolean @default(false)
+  bets      Bet[]
+}
+
+model Bet {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  matchId   Int
+  homeScore Int
+  awayScore Int
+  points    Int?
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  match Match @relation(fields: [matchId], references: [id])
+
+  @@unique([userId, matchId])
+}
+
+model Payment {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  amount        Float     @default(50)
+  status        String    @default("pending")
+  paymentMethod String?
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
