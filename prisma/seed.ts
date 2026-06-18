@@ -13,10 +13,8 @@ async function main() {
     console.log("Admin criado, atualize a senha pelo painel");
   }
 
-  await prisma.payment.deleteMany();
   await prisma.bet.deleteMany();
   await prisma.match.deleteMany();
-  await prisma.user.deleteMany({ where: { role: "USER" } });
 
   console.log("Deleted old data. Creating 2026 World Cup groups...");
 
