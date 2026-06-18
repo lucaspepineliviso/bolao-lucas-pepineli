@@ -317,7 +317,7 @@ Taxa Admin = Total Arrecadado × 20%
 
 - **URL**: `/admin`
 - **Usuário**: `lucaspepineliviso@gmail.com`
-- **Senha**: `admin123` (alterar após primeiro acesso)
+- **Senha**: Definida pelo administrador no banco de dados
 
 ### 10.2 Aba Jogos
 
