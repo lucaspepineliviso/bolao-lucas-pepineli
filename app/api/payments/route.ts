@@ -21,7 +21,7 @@ export async function POST() {
     }
 
     const payment = await prisma.payment.create({
-      data: { userId: user.id, amount: 50, status: "pending" },
+      data: { userId: user.id, amount: 10, status: "pending" },
     });
 
     return NextResponse.json({ payment, message: "Solicitação criada. Envie o Pix para o organizador." });

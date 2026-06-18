@@ -39,7 +39,7 @@ export default function RegrasPage() {
               </ul>
             </div>
             <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
-              <h3 className="font-bold text-lg mb-1">👑 Premium — R$ 50</h3>
+              <h3 className="font-bold text-lg mb-1">👑 Premium — R$ 10</h3>
               <p className="text-xs text-text-muted mb-2">Para quem quer concorrer ao prêmio</p>
               <ul className="text-xs space-y-1">
                 <li>✓ Palpites em todos os jogos</li>
@@ -72,19 +72,19 @@ export default function RegrasPage() {
                   </tr>
                   <tr className="border-b border-primary/10">
                     <td className="py-2 text-text-muted">Valor por participante</td>
-                    <td className="py-2 text-right font-bold">R$ 50</td>
+                    <td className="py-2 text-right font-bold">R$ 10</td>
                   </tr>
                   <tr className="border-b border-primary/10">
                     <td className="py-2 text-text-muted">Total Arrecadado</td>
-                    <td className="py-2 text-right font-bold text-accent">R$ 1.000</td>
+                    <td className="py-2 text-right font-bold text-accent">R$ 200</td>
                   </tr>
                   <tr className="border-b border-primary/10">
                     <td className="py-2 text-text-muted">Taxa de Administração (20%)</td>
-                    <td className="py-2 text-right font-bold text-danger">− R$ 200</td>
+                    <td className="py-2 text-right font-bold text-danger">− R$ 40</td>
                   </tr>
                   <tr className="text-base">
                     <td className="py-2 font-bold text-success">🏆 Prêmio do Vencedor</td>
-                    <td className="py-2 text-right font-black text-success">R$ 800</td>
+                    <td className="py-2 text-right font-black text-success">R$ 160</td>
                   </tr>
                 </tbody>
               </table>
@@ -95,19 +95,19 @@ export default function RegrasPage() {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-surface rounded-xl p-3">
                   <p className="text-text-muted">5 premium</p>
-                  <p className="font-bold">R$ 250 → Prêmio: <span className="text-success">R$ 200</span></p>
+                  <p className="font-bold">R$ 50 → Prêmio: <span className="text-success">R$ 40</span></p>
                 </div>
                 <div className="bg-surface rounded-xl p-3">
                   <p className="text-text-muted">10 premium</p>
-                  <p className="font-bold">R$ 500 → Prêmio: <span className="text-success">R$ 400</span></p>
+                  <p className="font-bold">R$ 100 → Prêmio: <span className="text-success">R$ 80</span></p>
                 </div>
                 <div className="bg-surface rounded-xl p-3">
                   <p className="text-text-muted">30 premium</p>
-                  <p className="font-bold">R$ 1.500 → Prêmio: <span className="text-success">R$ 1.200</span></p>
+                  <p className="font-bold">R$ 300 → Prêmio: <span className="text-success">R$ 240</span></p>
                 </div>
                 <div className="bg-surface rounded-xl p-3">
                   <p className="text-text-muted">50 premium</p>
-                  <p className="font-bold">R$ 2.500 → Prêmio: <span className="text-success">R$ 2.000</span></p>
+                  <p className="font-bold">R$ 500 → Prêmio: <span className="text-success">R$ 400</span></p>
                 </div>
               </div>
             </div>
@@ -233,7 +233,7 @@ export default function RegrasPage() {
             <li>• <strong>Integridade:</strong> Cada participante pode ter apenas uma conta. Contas duplicadas serão removidas.</li>
             <li>• <strong>Admin:</strong> O organizador do bolão (Lucas Pepineli) é o administrador e responsável por inserir os resultados oficiais.</li>
             <li>• <strong>Prêmio:</strong> Apenas participantes <strong>Premium</strong> concorrem ao prêmio. O valor é calculado automaticamente: 80% do total arrecadado com as inscrições premium. O pagamento é feito via Pix pelo organizador em até 7 dias após a final.</li>
-            <li>• <strong>Plano Premium:</strong> Para se tornar premium, acesse o menu do usuário e clique em "Seja Premium". O valor de R$ 50 é pago via Pix para o organizador. Após a confirmação, sua conta é liberada automaticamente.</li>
+            <li>• <strong>Plano Premium:</strong> Para se tornar premium, acesse o menu do usuário e clique em "Seja Premium". O valor de R$ 10 é pago via Pix para o organizador. Após a confirmação, sua conta é liberada automaticamente.</li>
           </ul>
         </section>
 

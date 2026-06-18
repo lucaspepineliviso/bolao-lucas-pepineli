@@ -281,7 +281,7 @@ Caso dois ou mais participantes terminem com a mesma pontuação, o desempate se
 - ✅ Acompanhar resultados
 - ❌ **Sem direito ao prêmio**
 
-### 👑 Plano Premium — R$ 50
+### 👑 Plano Premium — R$ 10
 
 - ✅ Palpites em todos os jogos
 - ✅ Ranking premium exclusivo
@@ -297,11 +297,11 @@ Taxa Admin = Total Arrecadado × 20%
 
 | Participantes Premium | Total Arrecadado | Taxa (20%) | Prêmio (80%) |
 |-----------------------|------------------|------------|--------------|
-| 5 | R$ 250 | R$ 50 | **R$ 200** |
-| 10 | R$ 500 | R$ 100 | **R$ 400** |
-| 20 | R$ 1.000 | R$ 200 | **R$ 800** |
-| 30 | R$ 1.500 | R$ 300 | **R$ 1.200** |
-| 50 | R$ 2.500 | R$ 500 | **R$ 2.000** |
+| 5 | R$ 50 | R$ 10 | **R$ 40** |
+| 10 | R$ 100 | R$ 20 | **R$ 80** |
+| 20 | R$ 200 | R$ 40 | **R$ 160** |
+| 30 | R$ 300 | R$ 60 | **R$ 240** |
+| 50 | R$ 500 | R$ 100 | **R$ 400** |
 
 ### 9.2 Pagamento do Prêmio
 

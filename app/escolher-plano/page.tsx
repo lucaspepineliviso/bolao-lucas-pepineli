@@ -62,7 +62,7 @@ export default function EscolherPlanoPage() {
           >
             <div className="text-4xl mb-3">👑</div>
             <h2 className="text-xl font-bold mb-2">Premium</h2>
-            <p className="text-primary font-black text-2xl mb-2">R$ 50</p>
+            <p className="text-primary font-black text-2xl mb-2">R$ 10</p>
             <p className="text-text-muted text-sm mb-4">Concorra ao prêmio!</p>
             <ul className="text-xs text-left space-y-2 mb-6">
               <li className="flex items-center gap-2">✓ Palpites em todos os jogos</li>
