@@ -14,11 +14,28 @@ interface Bet {
     awayTeam: string;
     matchDate: string;
     stage: string;
+    groupName: string | null;
     homeScore: number | null;
     awayScore: number | null;
     isFinished: boolean;
   };
 }
+
+const STAGE_ORDER = [
+  "GRUPO A", "GRUPO B", "GRUPO C", "GRUPO D", "GRUPO E", "GRUPO F",
+  "GRUPO G", "GRUPO H", "GRUPO I", "GRUPO J", "GRUPO K", "GRUPO L",
+  "OITAVAS", "OITAVAS FINAL", "QUARTAS", "SEMIFINAL", "3º LUGAR", "FINAL",
+];
+
+const STAGE_LABELS: Record<string, string> = {
+  "GRUPO A": "Grupo A", "GRUPO B": "Grupo B", "GRUPO C": "Grupo C",
+  "GRUPO D": "Grupo D", "GRUPO E": "Grupo E", "GRUPO F": "Grupo F",
+  "GRUPO G": "Grupo G", "GRUPO H": "Grupo H", "GRUPO I": "Grupo I",
+  "GRUPO J": "Grupo J", "GRUPO K": "Grupo K", "GRUPO L": "Grupo L",
+  "OITAVAS": "Oitavas de Final", "OITAVAS FINAL": "Oitavas Final",
+  "QUARTAS": "Quartas de Final", "SEMIFINAL": "Semifinal",
+  "3º LUGAR": "3º Lugar", "FINAL": "Final",
+};
 
 export default function PalpitesPage() {
   const router = useRouter();
@@ -36,8 +53,18 @@ export default function PalpitesPage() {
       .finally(() => setLoading(false));
   }, [router]);
 
-  const pending = bets.filter((b) => !b.match.isFinished);
-  const finished = bets.filter((b) => b.match.isFinished);
+  const totalPoints = bets.reduce((sum, b) => sum + (b.points ?? 0), 0);
+  const finishedBets = bets.filter((b) => b.match.isFinished);
+  const correctBets = finishedBets.filter((b) => b.points && b.points > 0).length;
+
+  const grouped = STAGE_ORDER.reduce(
+    (acc, stage) => {
+      const stageBets = bets.filter((b) => b.match.stage === stage);
+      if (stageBets.length > 0) acc[stage] = stageBets;
+      return acc;
+    },
+    {} as Record<string, Bet[]>
+  );
 
   if (loading) {
     return (
@@ -53,83 +80,102 @@ export default function PalpitesPage() {
     );
   }
 
+  if (bets.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 text-center">
+        <h1 className="text-3xl font-black mb-4">📋 Meus Palpites</h1>
+        <div className="bg-surface rounded-2xl p-6 border border-primary/20">
+          <p className="text-5xl mb-4">🎯</p>
+          <p className="font-bold text-lg mb-2">Nenhum palpite ainda</p>
+          <p className="text-text-muted text-sm mb-4">Preencha seus palpites para todos os 104 jogos da Copa.</p>
+          <button onClick={() => router.push("/palpites/novo")} className="bg-primary hover:bg-primary-dark px-6 py-2.5 rounded-xl text-sm font-bold transition-colors">
+            Fazer Palpites
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h1 className="text-3xl font-black mb-2">📋 Meus Palpites</h1>
-        <p className="text-text-muted">Todos os seus palpites no bolão</p>
+        <p className="text-text-muted text-sm">Relatório completo dos seus palpites</p>
       </div>
 
-      {bets.length === 0 ? (
-        <div className="text-center py-12 text-text-muted">
-          <p className="text-5xl mb-4">🎯</p>
-          <p>Você ainda não fez nenhum palpite</p>
-          <p className="text-sm mt-2">Vá para a página inicial e comece a palpitar!</p>
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="bg-surface rounded-xl p-4 text-center border border-primary/10">
+          <p className="text-2xl font-black text-primary">{bets.length}</p>
+          <p className="text-xs text-text-muted">Palpites</p>
         </div>
-      ) : (
-        <>
-          {pending.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-                <span className="w-1 h-5 bg-accent rounded-full" />
-                Pendentes ({pending.length})
-              </h2>
-              <div className="space-y-2">
-                {pending.map((bet) => (
-                  <div key={bet.id} className="bg-surface rounded-xl p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">
-                        {bet.match.homeTeam} vs {bet.match.awayTeam}
-                      </p>
-                      <p className="text-xs text-text-muted">{bet.match.stage}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="bg-primary/20 text-primary px-3 py-1 rounded-lg text-sm font-bold">
-                        {bet.homeScore} × {bet.awayScore}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="bg-surface rounded-xl p-4 text-center border border-primary/10">
+          <p className="text-2xl font-black text-success">{correctBets}</p>
+          <p className="text-xs text-text-muted">Acertou</p>
+        </div>
+        <div className="bg-surface rounded-xl p-4 text-center border border-primary/10">
+          <p className="text-2xl font-black text-accent">{totalPoints}</p>
+          <p className="text-xs text-text-muted">Pontos</p>
+        </div>
+      </div>
 
-          {finished.length > 0 && (
-            <div>
-              <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-                <span className="w-1 h-5 bg-success rounded-full" />
-                Encerrados ({finished.length})
-              </h2>
-              <div className="space-y-2">
-                {finished.map((bet) => (
-                  <div key={bet.id} className="bg-surface rounded-xl p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">
-                        {bet.match.homeTeam} vs {bet.match.awayTeam}
-                      </p>
-                      <p className="text-xs text-text-muted">
-                        {bet.match.homeScore} × {bet.match.awayScore}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="bg-surface-light px-3 py-1 rounded-lg text-sm">
-                        {bet.homeScore} × {bet.awayScore}
-                      </span>
-                      <span
-                        className={`font-bold text-sm ${
-                          bet.points && bet.points > 0 ? "text-success" : "text-danger"
-                        }`}
-                      >
-                        {bet.points ?? 0} pts
-                      </span>
-                    </div>
+      {Object.entries(grouped).map(([stage, stageBets]) => (
+        <div key={stage} className="mb-6">
+          <h2 className="text-base font-bold mb-3 flex items-center gap-2">
+            <span className="w-1 h-5 bg-primary rounded-full" />
+            {STAGE_LABELS[stage] || stage}
+          </h2>
+          <div className="space-y-2">
+            {stageBets.map((bet) => (
+              <div
+                key={bet.id}
+                className={`bg-surface rounded-xl p-3 border transition-all ${
+                  bet.match.isFinished
+                    ? bet.points && bet.points > 0
+                      ? "border-success/30"
+                      : "border-danger/20"
+                    : "border-primary/10"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                  <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
+                    {new Date(bet.match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                  </span>
+                  {bet.match.isFinished && (
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                      bet.points && bet.points > 0
+                        ? "bg-success/20 text-success"
+                        : "bg-danger/20 text-danger"
+                    }`}>
+                      {bet.points ?? 0} pts
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 text-right">
+                    <p className="font-bold text-sm truncate">{bet.match.homeTeam}</p>
                   </div>
-                ))}
+                  <div className="flex items-center gap-2 mx-3">
+                    <span className="bg-primary/20 text-primary px-3 py-1 rounded-lg text-sm font-bold">
+                      {bet.homeScore} × {bet.awayScore}
+                    </span>
+                    {bet.match.isFinished && (
+                      <>
+                        <span className="text-text-muted text-xs">→</span>
+                        <span className="bg-surface-light px-3 py-1 rounded-lg text-sm font-bold">
+                          {bet.match.homeScore} × {bet.match.awayScore}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-sm truncate">{bet.match.awayTeam}</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

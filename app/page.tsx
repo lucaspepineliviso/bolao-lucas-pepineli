@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import MatchCard from "@/components/MatchCard";
-import GroupStageForm from "@/components/GroupStageForm";
+import Link from "next/link";
 import PrizeDisplay from "@/components/PrizeDisplay";
 
 interface Match {
@@ -19,46 +19,46 @@ interface Match {
   userBet?: { homeScore: number; awayScore: number; points: number | null } | null;
 }
 
+const STAGE_ORDER = [
+  "GRUPO A", "GRUPO B", "GRUPO C", "GRUPO D", "GRUPO E", "GRUPO F",
+  "GRUPO G", "GRUPO H", "GRUPO I", "GRUPO J", "GRUPO K", "GRUPO L",
+  "OITAVAS", "OITAVAS FINAL", "QUARTAS", "SEMIFINAL", "3º LUGAR", "FINAL",
+];
+
+const STAGE_LABELS: Record<string, string> = {
+  "GRUPO A": "Grupo A", "GRUPO B": "Grupo B", "GRUPO C": "Grupo C",
+  "GRUPO D": "Grupo D", "GRUPO E": "Grupo E", "GRUPO F": "Grupo F",
+  "GRUPO G": "Grupo G", "GRUPO H": "Grupo H", "GRUPO I": "Grupo I",
+  "GRUPO J": "Grupo J", "GRUPO K": "Grupo K", "GRUPO L": "Grupo L",
+  "OITAVAS": "Oitavas de Final", "OITAVAS FINAL": "Oitavas Final",
+  "QUARTAS": "Quartas de Final", "SEMIFINAL": "Semifinal",
+  "3º LUGAR": "3º Lugar", "FINAL": "Final",
+};
+
 export default function Home() {
+  const router = useRouter();
   const [matches, setMatches] = useState<Match[]>([]);
-  const [filter, setFilter] = useState<"all" | "open" | "finished">("all");
   const [loading, setLoading] = useState(true);
+  const [hasBets, setHasBets] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    loadMatches();
+    Promise.all([
+      fetch("/api/matches").then((r) => r.json()),
+      fetch("/api/auth/me").then((r) => r.json()).catch(() => null),
+      fetch("/api/bets").then((r) => r.json()).catch(() => []),
+    ])
+      .then(([allMatches, userData, bets]) => {
+        setMatches(allMatches);
+        setUser(userData);
+        setHasBets(bets.length > 0);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  async function loadMatches() {
-    try {
-      const res = await fetch("/api/matches");
-      if (res.ok) {
-        const data = await res.json();
-        setMatches(data);
-      }
-    } catch (err) {
-      console.error("Erro ao carregar jogos:", err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const groupStageEnd = new Date("2026-06-28T00:00:00-03:00");
-  const isGroupStage = new Date() < groupStageEnd;
-
-  const groupMatches = matches.filter((m) => m.stage?.startsWith("GRUPO"));
-  const knockoutMatches = matches.filter((m) => !m.stage?.startsWith("GRUPO"));
-
-  const now = new Date();
-  const filteredKnockout = knockoutMatches.filter((m) => {
-    if (filter === "open") return !m.isFinished && new Date(m.matchDate) > now;
-    if (filter === "finished") return m.isFinished;
-    return true;
-  });
-
-  const knockoutStages = Array.from(new Set(filteredKnockout.map((m) => m.stage))).sort();
-  const groupedKnockout = knockoutStages.reduce(
+  const grouped = STAGE_ORDER.reduce(
     (acc, stage) => {
-      const stageMatches = filteredKnockout.filter((m) => m.stage === stage);
+      const stageMatches = matches.filter((m) => m.stage === stage);
       if (stageMatches.length > 0) acc[stage] = stageMatches;
       return acc;
     },
@@ -69,7 +69,7 @@ export default function Home() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <div className="text-center mb-6">
         <h1 className="text-3xl md:text-4xl font-black mb-2">
-          🇧🇷 Bolão <span className="text-primary">Lucas Pepineli</span>
+          Bolão <span className="text-primary">Lucas Pepineli</span>
         </h1>
         <p className="text-text-muted">Copa do Mundo 2026</p>
       </div>
@@ -89,6 +89,29 @@ export default function Home() {
         <PrizeDisplay />
       </div>
 
+      {user && !user.error && (
+        <div className="mb-6">
+          {hasBets ? (
+            <Link
+              href="/palpites"
+              className="block bg-success/10 border border-success/20 rounded-2xl p-4 text-center hover:bg-success/20 transition-colors"
+            >
+              <p className="text-sm font-bold text-success">✅ Seus palpites foram salvos</p>
+              <p className="text-xs text-text-muted mt-1">Clique para ver seu relatório completo</p>
+            </Link>
+          ) : (
+            <Link
+              href="/palpites/novo"
+              className="block bg-primary/10 border border-primary/20 rounded-2xl p-4 text-center hover:bg-primary/20 transition-colors"
+            >
+              <p className="text-2xl mb-1">🎯</p>
+              <p className="text-sm font-bold text-primary">Faça seus palpites agora!</p>
+              <p className="text-xs text-text-muted mt-1">Preencha todos os 104 jogos de uma vez</p>
+            </Link>
+          )}
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -100,61 +123,65 @@ export default function Home() {
         </div>
       ) : (
         <>
-          {isGroupStage && groupMatches.length > 0 ? (
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="w-1 h-6 bg-primary rounded-full" />
-                <h2 className="text-lg font-bold">Fase de Grupos</h2>
-                <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full font-medium">
-                  Preencha tudo e salve no final
-                </span>
-              </div>
-              <GroupStageForm matches={groupMatches} onSaved={loadMatches} />
-            </div>
-          ) : (
-            <div className="bg-danger/10 border border-danger/20 rounded-2xl p-4 text-center mb-6">
-              <p className="text-sm font-medium text-danger">⏰ Fase de grupos encerrada</p>
-              <p className="text-xs text-text-muted mt-1">Os palpites da fase de grupos não podem mais ser alterados.</p>
-            </div>
-          )}
-
-          {Object.keys(groupedKnockout).length > 0 && (
-            <>
-              <div className="flex justify-center gap-2 mb-6">
-                {[
-                  { key: "all", label: "Todos" },
-                  { key: "open", label: "Abertos" },
-                  { key: "finished", label: "Encerrados" },
-                ].map((f) => (
-                  <button
-                    key={f.key}
-                    onClick={() => setFilter(f.key as typeof filter)}
-                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                      filter === f.key
-                        ? "bg-primary text-white"
-                        : "bg-surface-light text-text-muted hover:bg-primary/20"
+          {Object.entries(grouped).map(([stage, stageMatches]) => (
+            <div key={stage} className="mb-8">
+              <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
+                <span className="w-1 h-5 bg-primary rounded-full" />
+                {STAGE_LABELS[stage] || stage}
+              </h2>
+              <div className="space-y-2">
+                {stageMatches.map((match) => (
+                  <div
+                    key={match.id}
+                    className={`bg-surface rounded-xl p-3 border transition-all ${
+                      match.isFinished ? "border-success/20" : "border-primary/10"
                     }`}
                   >
-                    {f.label}
-                  </button>
+                    <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                      <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
+                        {new Date(match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}{" "}
+                        {new Date(match.matchDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="flex-1 text-right">
+                        <p className="font-bold text-sm truncate max-w-[120px] sm:max-w-none ml-auto">{match.homeTeam}</p>
+                      </div>
+                      {match.isFinished ? (
+                        <div className="flex items-center gap-2 bg-surface-light rounded-xl px-4 py-2 shrink-0">
+                          <span className="text-2xl font-black text-success">{match.homeScore}</span>
+                          <span className="text-text-muted">×</span>
+                          <span className="text-2xl font-black text-success">{match.awayScore}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 bg-surface-light rounded-xl px-4 py-2 shrink-0">
+                          <span className="text-lg font-bold text-text-muted">?</span>
+                          <span className="text-text-muted">×</span>
+                          <span className="text-lg font-bold text-text-muted">?</span>
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="font-bold text-sm truncate max-w-[120px] sm:max-w-none">{match.awayTeam}</p>
+                      </div>
+                    </div>
+                    {match.userBet && match.isFinished && (
+                      <div className="mt-2 text-center">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full ${
+                            match.userBet.points && match.userBet.points > 0
+                              ? "bg-success/20 text-success"
+                              : "bg-danger/20 text-danger"
+                          }`}
+                        >
+                          Seu palpite: {match.userBet.homeScore}×{match.userBet.awayScore} ({match.userBet.points ?? 0} pts)
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
-
-              {Object.entries(groupedKnockout).map(([stage, stageMatches]) => (
-                <div key={stage} className="mb-8">
-                  <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-                    <span className="w-1 h-5 bg-primary rounded-full" />
-                    {stage}
-                  </h2>
-                  <div className="space-y-3">
-                    {stageMatches.map((match) => (
-                      <MatchCard key={match.id} match={match} onBetPlaced={loadMatches} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
+            </div>
+          ))}
 
           {matches.length === 0 && (
             <div className="text-center py-12 text-text-muted">

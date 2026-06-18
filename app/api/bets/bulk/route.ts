@@ -15,14 +15,19 @@ export async function POST(request: Request) {
       }
     }
 
+    const groupStageEnd = new Date("2026-06-28T00:00:00-03:00");
+    if (new Date() > groupStageEnd) {
+      return NextResponse.json({ error: "Prazo encerrado. Não é mais possível palpitar." }, { status: 403 });
+    }
+
+    const existingBets = await prisma.bet.count({ where: { userId: user.id } });
+    if (existingBets > 0) {
+      return NextResponse.json({ error: "Você já salvou seus palpites. Não é possível alterar." }, { status: 403 });
+    }
+
     const { bets } = await request.json();
     if (!bets || !Array.isArray(bets) || bets.length === 0) {
       return NextResponse.json({ error: "Envie pelo menos um palpite" }, { status: 400 });
-    }
-
-    const groupStageEnd = new Date("2026-06-28T00:00:00-03:00");
-    if (new Date() > groupStageEnd) {
-      return NextResponse.json({ error: "Fase de grupos encerrada. Use o sistema individual de palpites." }, { status: 403 });
     }
 
     const now = new Date();
@@ -54,20 +59,9 @@ export async function POST(request: Request) {
         continue;
       }
 
-      const existing = await prisma.bet.findUnique({
-        where: { userId_matchId: { userId: user.id, matchId } },
+      await prisma.bet.create({
+        data: { userId: user.id, matchId, homeScore, awayScore },
       });
-
-      if (existing) {
-        await prisma.bet.update({
-          where: { id: existing.id },
-          data: { homeScore, awayScore },
-        });
-      } else {
-        await prisma.bet.create({
-          data: { userId: user.id, matchId, homeScore, awayScore },
-        });
-      }
       results.saved++;
     }
 
