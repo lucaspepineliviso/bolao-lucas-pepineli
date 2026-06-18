@@ -72,6 +72,7 @@ export default function Home() {
           Bolão <span className="text-primary">Lucas Pepineli</span>
         </h1>
         <p className="text-text-muted">Copa do Mundo 2026</p>
+        <p className="text-xs text-text-muted mt-1">Placares e resultados — aqui você só acompanha</p>
       </div>
 
       <div className="relative w-full max-w-md mx-auto mb-6 rounded-2xl overflow-hidden border border-primary/20">
@@ -94,18 +95,18 @@ export default function Home() {
           {hasBets ? (
             <Link
               href="/palpites"
-              className="block bg-success/10 border border-success/20 rounded-2xl p-4 text-center hover:bg-success/20 transition-colors"
+              className="block bg-surface border border-primary/20 rounded-2xl p-4 text-center hover:bg-primary/10 transition-colors"
             >
-              <p className="text-sm font-bold text-success">✅ Seus palpites foram salvos</p>
-              <p className="text-xs text-text-muted mt-1">Clique para ver seu relatório completo</p>
+              <p className="text-sm font-bold">📋 Ver Meus Palpites</p>
+              <p className="text-xs text-text-muted mt-1">Acompanhe seus palpites e pontos</p>
             </Link>
           ) : (
             <Link
               href="/palpites/novo"
-              className="block bg-primary/10 border border-primary/20 rounded-2xl p-4 text-center hover:bg-primary/20 transition-colors"
+              className="block bg-primary/10 border border-primary/30 rounded-2xl p-4 text-center hover:bg-primary/20 transition-colors"
             >
               <p className="text-2xl mb-1">🎯</p>
-              <p className="text-sm font-bold text-primary">Faça seus palpites agora!</p>
+              <p className="text-sm font-bold text-primary">Faça seus palpites aqui!</p>
               <p className="text-xs text-text-muted mt-1">Preencha todos os 104 jogos de uma vez</p>
             </Link>
           )}
@@ -155,9 +156,7 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 bg-surface-light rounded-xl px-4 py-2 shrink-0">
-                          <span className="text-lg font-bold text-text-muted">?</span>
-                          <span className="text-text-muted">×</span>
-                          <span className="text-lg font-bold text-text-muted">?</span>
+                          <span className="text-sm font-medium text-text-muted">Aguardando</span>
                         </div>
                       )}
                       <div className="flex-1">
