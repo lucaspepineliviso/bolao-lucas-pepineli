@@ -76,8 +76,8 @@ export default function Home() {
 
       <div className="relative w-full max-w-md mx-auto mb-6 rounded-2xl overflow-hidden border border-primary/20">
         <Image
-          src="/Imagen_Lucas.png"
-          alt="Lucas Pepineli"
+          src="/Bolao_Lucas_Pepineli.png"
+          alt="Bolão Lucas Pepineli"
           width={800}
           height={600}
           className="w-full h-auto object-cover"
