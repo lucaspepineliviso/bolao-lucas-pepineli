@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import MatchCard from "@/components/MatchCard";
 import GroupStageForm from "@/components/GroupStageForm";
 import PrizeDisplay from "@/components/PrizeDisplay";
@@ -71,6 +72,17 @@ export default function Home() {
           🇧🇷 Bolão <span className="text-primary">Lucas Pepineli</span>
         </h1>
         <p className="text-text-muted">Copa do Mundo 2026</p>
+      </div>
+
+      <div className="relative w-full max-w-md mx-auto mb-6 rounded-2xl overflow-hidden border border-primary/20">
+        <Image
+          src="/Imagen_Lucas.png"
+          alt="Lucas Pepineli"
+          width={800}
+          height={600}
+          className="w-full h-auto object-cover"
+          priority
+        />
       </div>
 
       <div className="mb-6">
