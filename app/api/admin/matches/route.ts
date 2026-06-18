@@ -97,3 +97,34 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Erro ao atualizar jogo" }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  try {
+    await requireAdmin();
+    const { matchId, homeTeam, awayTeam, matchDate, stage, groupName, homeScore, awayScore, isFinished } = await request.json();
+
+    if (!matchId) {
+      return NextResponse.json({ error: "ID do jogo obrigatório" }, { status: 400 });
+    }
+
+    const data: Record<string, unknown> = {};
+    if (homeTeam !== undefined) data.homeTeam = homeTeam;
+    if (awayTeam !== undefined) data.awayTeam = awayTeam;
+    if (matchDate !== undefined) data.matchDate = new Date(matchDate);
+    if (stage !== undefined) data.stage = stage;
+    if (groupName !== undefined) data.groupName = groupName;
+    if (homeScore !== undefined) data.homeScore = homeScore;
+    if (awayScore !== undefined) data.awayScore = awayScore;
+    if (isFinished !== undefined) data.isFinished = isFinished;
+
+    await prisma.match.update({ where: { id: matchId }, data });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error instanceof Error && (error.message === "Não autorizado" || error.message === "Acesso restrito a administradores")) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+    console.error("Patch match error:", error);
+    return NextResponse.json({ error: "Erro ao editar jogo" }, { status: 500 });
+  }
+}

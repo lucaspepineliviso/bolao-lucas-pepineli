@@ -28,6 +28,8 @@ export default function AdminPage() {
   const [premiumStats, setPremiumStats] = useState<PremiumStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ homeTeam: "", awayTeam: "", matchDate: "", stage: "", groupName: "" });
   const [admin, setAdmin] = useState(false);
 
   const [form, setForm] = useState({
@@ -90,6 +92,25 @@ export default function AdminPage() {
       body: JSON.stringify({ matchId, homeScore: home, awayScore: away }),
     });
     if (res.ok) loadMatches();
+  }
+
+  function openEdit(match: any) {
+    setEditingId(match.id);
+    setEditForm({
+      homeTeam: match.homeTeam,
+      awayTeam: match.awayTeam,
+      matchDate: new Date(match.matchDate).toISOString().slice(0, 16),
+      stage: match.stage,
+      groupName: match.groupName || "",
+    });
+  }
+
+  async function handleUpdate(matchId: number) {
+    const res = await fetch("/api/admin/matches", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchId, ...editForm }),
+    });
+    if (res.ok) { setEditingId(null); loadMatches(); }
   }
 
   async function handleConfirmPayment(paymentId: number) {
@@ -172,11 +193,53 @@ export default function AdminPage() {
 
           <div className="space-y-3">
             {matches.map((match) => (
-              <div key={match.id} className={`bg-surface rounded-2xl p-4 border ${match.isFinished ? "border-success/20" : "border-primary/10"}`}>
-                  <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+          <div key={match.id} className={`bg-surface rounded-2xl p-4 border ${match.isFinished ? "border-success/20" : "border-primary/10"}`}>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                   <span className="text-xs font-medium bg-surface-light px-2.5 py-1 rounded-full text-text-muted truncate max-w-[60%]">{match.stage} {match.groupName && `- ${match.groupName}`}</span>
-                  <span className="text-xs text-text-muted shrink-0">{new Date(match.matchDate).toLocaleDateString("pt-BR")}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs text-text-muted">{new Date(match.matchDate).toLocaleDateString("pt-BR")}</span>
+                    {!match.isFinished && (
+                      <button onClick={() => openEdit(match)} className="text-xs text-accent hover:text-accent/80 transition-colors">
+                        Editar
+                      </button>
+                    )}
+                  </div>
                 </div>
+
+                {editingId === match.id ? (
+                  <div className="space-y-2 mb-3">
+                    <input value={editForm.homeTeam} onChange={(e) => setEditForm({ ...editForm, homeTeam: e.target.value })} className="w-full px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg" />
+                    <input value={editForm.awayTeam} onChange={(e) => setEditForm({ ...editForm, awayTeam: e.target.value })} className="w-full px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg" />
+                    <input type="datetime-local" value={editForm.matchDate} onChange={(e) => setEditForm({ ...editForm, matchDate: e.target.value })} className="w-full px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg" />
+                    <select value={editForm.stage} onChange={(e) => setEditForm({ ...editForm, stage: e.target.value })} className="w-full px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg">
+                      <option value="GRUPO A">GRUPO A</option>
+                      <option value="GRUPO B">GRUPO B</option>
+                      <option value="GRUPO C">GRUPO C</option>
+                      <option value="GRUPO D">GRUPO D</option>
+                      <option value="GRUPO E">GRUPO E</option>
+                      <option value="GRUPO F">GRUPO F</option>
+                      <option value="GRUPO G">GRUPO G</option>
+                      <option value="GRUPO H">GRUPO H</option>
+                      <option value="GRUPO I">GRUPO I</option>
+                      <option value="GRUPO J">GRUPO J</option>
+                      <option value="GRUPO K">GRUPO K</option>
+                      <option value="GRUPO L">GRUPO L</option>
+                      <option value="OITAVAS">OITAVAS</option>
+                      <option value="OITAVAS FINAL">OITAVAS FINAL</option>
+                      <option value="QUARTAS">QUARTAS</option>
+                      <option value="SEMIFINAL">SEMIFINAL</option>
+                      <option value="3º LUGAR">3º LUGAR</option>
+                      <option value="FINAL">FINAL</option>
+                    </select>
+                    <input value={editForm.groupName} onChange={(e) => setEditForm({ ...editForm, groupName: e.target.value })} placeholder="Grupo (ex: Grupo A)" className="w-full px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg" />
+                    <div className="flex gap-2">
+                      <button onClick={() => handleUpdate(match.id)} className="flex-1 bg-success hover:bg-success/80 py-1.5 rounded-lg text-sm font-medium transition-colors">Salvar</button>
+                      <button onClick={() => setEditingId(null)} className="flex-1 bg-surface-light hover:bg-surface-light/80 py-1.5 rounded-lg text-sm transition-colors">Cancelar</button>
+                    </div>
+                  </div>
+                ) : (<></>)}
+
+                <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
                 <div className="flex items-center justify-center gap-2 sm:gap-4 flex-wrap">
                   <div className="flex-1 text-right font-bold text-sm sm:text-base truncate max-w-[30%]">{match.homeTeam}</div>
                   {match.isFinished ? (
