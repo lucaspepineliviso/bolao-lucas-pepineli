@@ -13,10 +13,14 @@ async function main() {
     console.log("Admin criado, atualize a senha pelo painel");
   }
 
-  await prisma.bet.deleteMany();
-  await prisma.match.deleteMany();
+  const matchCount = await prisma.match.count();
+  if (matchCount > 0) {
+    console.log("⚠️ Jogos já existem no banco. Seed ignorado para preservar palpites e dados.");
+    console.log(`   ${matchCount} jogos, ${await prisma.user.count()} usuários, ${await prisma.bet.count()} palpites preservados.`);
+    return;
+  }
 
-  console.log("Deleted old data. Creating 2026 World Cup groups...");
+  console.log("Criando 2026 World Cup groups...");
 
   const groups = {
     A: ["México", "África do Sul", "Coreia do Sul", "República Tcheca"],
