@@ -78,9 +78,19 @@ export default function NovoPalpitePage() {
 
   async function handleSave() {
     setErrorMsg("");
+
+    const missingCount = matches.filter(
+      (m) => !m.isFinished && new Date(m.matchDate) > new Date() && (scores[m.id]?.home === "" || scores[m.id]?.away === "")
+    ).length;
+
+    if (missingCount > 0) {
+      setErrorMsg(`Faltam ${missingCount} jogos para preencher. Preencha todos antes de salvar.`);
+      setShowFailure(true);
+      return;
+    }
+
     const bets = matches
       .filter((m) => !m.isFinished && new Date(m.matchDate) > new Date())
-      .filter((m) => scores[m.id]?.home !== "" && scores[m.id]?.away !== "")
       .map((m) => ({
         matchId: m.id,
         homeScore: parseInt(scores[m.id].home) || 0,
@@ -163,14 +173,18 @@ export default function NovoPalpitePage() {
         <div className="flex items-center justify-between">
           <div className="text-sm">
             <span className="text-text-muted">{filledCount}/{totalMatches} preenchidos</span>
-            {filledCount === totalMatches && <span className="ml-2 text-success">✅ Todos!</span>}
+            {filledCount === totalMatches ? (
+              <span className="ml-2 text-success">✅ Todos!</span>
+            ) : (
+              <span className="ml-2 text-accent">Faltam {totalMatches - filledCount}</span>
+            )}
           </div>
           <button
             onClick={handleSave}
-            disabled={saving || filledCount === 0}
-            className="bg-primary hover:bg-primary-dark transition-colors px-6 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50"
+            disabled={saving || filledCount < totalMatches}
+            className="bg-primary hover:bg-primary-dark transition-colors px-6 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saving ? "Salvando..." : "Salvar Todos os Palpites"}
+            {saving ? "Salvando..." : filledCount < totalMatches ? `Preencha os ${totalMatches - filledCount} restantes` : "Salvar Todos os Palpites"}
           </button>
         </div>
       </div>
@@ -250,10 +264,10 @@ export default function NovoPalpitePage() {
       <div className="sticky bottom-4 z-40 mt-6">
         <button
           onClick={handleSave}
-          disabled={saving || filledCount === 0}
-          className="w-full bg-primary hover:bg-primary-dark transition-colors py-3 rounded-2xl text-base font-bold shadow-lg shadow-primary/30 disabled:opacity-50"
+          disabled={saving || filledCount < totalMatches}
+          className="w-full bg-primary hover:bg-primary-dark transition-colors py-3 rounded-2xl text-base font-bold shadow-lg shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {saving ? "Salvando..." : `Salvar Todos os Palpites (${filledCount}/${totalMatches})`}
+          {saving ? "Salvando..." : filledCount < totalMatches ? `Preencha os ${totalMatches - filledCount} jogos restantes` : `Salvar Todos os Palpites (${totalMatches}/${totalMatches})`}
         </button>
       </div>
 
