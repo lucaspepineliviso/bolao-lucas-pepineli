@@ -64,6 +64,21 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
     }
 
+    const oldMatch = await prisma.match.findUnique({
+      where: { id: matchId },
+      include: { bets: true },
+    });
+
+    if (oldMatch && oldMatch.isFinished && oldMatch.homeScore !== null && oldMatch.awayScore !== null) {
+      for (const bet of oldMatch.bets) {
+        const oldPoints = calculatePoints(bet.homeScore, bet.awayScore, oldMatch.homeScore, oldMatch.awayScore);
+        await prisma.user.update({
+          where: { id: bet.userId },
+          data: { points: { decrement: oldPoints } },
+        });
+      }
+    }
+
     const match = await prisma.match.update({
       where: { id: matchId },
       data: {

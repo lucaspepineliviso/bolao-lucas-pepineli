@@ -29,7 +29,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ homeTeam: "", awayTeam: "", matchDate: "", stage: "", groupName: "" });
+  const [editForm, setEditForm] = useState({ homeTeam: "", awayTeam: "", matchDate: "", stage: "", groupName: "", homeScore: "", awayScore: "" });
   const [admin, setAdmin] = useState(false);
 
   const [form, setForm] = useState({
@@ -102,15 +102,36 @@ export default function AdminPage() {
       matchDate: new Date(match.matchDate).toISOString().slice(0, 16),
       stage: match.stage,
       groupName: match.groupName || "",
+      homeScore: match.homeScore?.toString() ?? "",
+      awayScore: match.awayScore?.toString() ?? "",
     });
   }
 
   async function handleUpdate(matchId: number) {
-    const res = await fetch("/api/admin/matches", {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ matchId, ...editForm }),
-    });
-    if (res.ok) { setEditingId(null); loadMatches(); }
+    if (editForm.homeScore !== "" && editForm.awayScore !== "") {
+      const res = await fetch("/api/admin/matches", {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId,
+          homeScore: parseInt(editForm.homeScore),
+          awayScore: parseInt(editForm.awayScore),
+        }),
+      });
+      if (res.ok) {
+        await fetch("/api/admin/matches", {
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ matchId, homeTeam: editForm.homeTeam, awayTeam: editForm.awayTeam, matchDate: editForm.matchDate, stage: editForm.stage, groupName: editForm.groupName }),
+        });
+        setEditingId(null);
+        loadMatches();
+      }
+    } else {
+      const res = await fetch("/api/admin/matches", {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matchId, ...editForm, homeScore: undefined, awayScore: undefined }),
+      });
+      if (res.ok) { setEditingId(null); loadMatches(); }
+    }
   }
 
   async function handleConfirmPayment(paymentId: number) {
@@ -198,11 +219,9 @@ export default function AdminPage() {
                   <span className="text-xs font-medium bg-surface-light px-2.5 py-1 rounded-full text-text-muted truncate max-w-[60%]">{match.stage}{match.groupName ? " - " + match.groupName : ""}</span>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-xs text-text-muted">{new Date(match.matchDate).toLocaleDateString("pt-BR")}</span>
-                    {!match.isFinished && (
-                      <button onClick={() => openEdit(match)} className="text-xs text-accent hover:text-accent/80 transition-colors">
-                        Editar
-                      </button>
-                    )}
+                    <button onClick={() => openEdit(match)} className="text-xs text-accent hover:text-accent/80 transition-colors">
+                      Editar
+                    </button>
                   </div>
                 </div>
 
@@ -232,6 +251,13 @@ export default function AdminPage() {
                       <option value="FINAL">FINAL</option>
                     </select>
                     <input value={editForm.groupName} onChange={(e) => setEditForm({ ...editForm, groupName: e.target.value })} placeholder="Grupo (ex: Grupo A)" className="w-full px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg" />
+                    {match.isFinished && (
+                      <div className="flex gap-2">
+                        <input type="number" min="0" value={editForm.homeScore} onChange={(e) => setEditForm({ ...editForm, homeScore: e.target.value })} placeholder="Placar Casa" className="flex-1 px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg text-center font-bold" />
+                        <span className="text-text-muted self-center">×</span>
+                        <input type="number" min="0" value={editForm.awayScore} onChange={(e) => setEditForm({ ...editForm, awayScore: e.target.value })} placeholder="Placar Visitante" className="flex-1 px-3 py-1.5 text-sm bg-surface-light border border-primary/20 rounded-lg text-center font-bold" />
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <button onClick={() => handleUpdate(match.id)} className="flex-1 bg-success hover:bg-success/80 py-1.5 rounded-lg text-sm font-medium transition-colors">Salvar</button>
                       <button onClick={() => setEditingId(null)} className="flex-1 bg-surface-light hover:bg-surface-light/80 py-1.5 rounded-lg text-sm transition-colors">Cancelar</button>
