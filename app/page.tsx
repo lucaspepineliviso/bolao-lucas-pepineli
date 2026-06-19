@@ -134,7 +134,7 @@ export default function Home() {
                 {stageMatches.map((match) => (
                   <div
                     key={match.id}
-                    className={`bg-surface rounded-xl p-3 border transition-all ${
+                    className={`bg-surface rounded-xl p-3 border transition-colors ${
                       match.isFinished ? "border-success/20" : "border-primary/10"
                     }`}
                   >
