@@ -2,9 +2,15 @@
 
 import { useState, useEffect } from "react";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 export default function InstallBanner() {
   const [show, setShow] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android" | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     const dismissed = localStorage.getItem("install-banner-dismissed");
@@ -20,7 +26,26 @@ export default function InstallBanner() {
       setPlatform(isIOS ? "ios" : "android");
       setShow(true);
     }
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
+
+  const handleInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        localStorage.setItem("install-banner-dismissed", "true");
+        setShow(false);
+      }
+      setDeferredPrompt(null);
+    }
+  };
 
   if (!show || !platform) return null;
 
@@ -31,11 +56,21 @@ export default function InstallBanner() {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold">Instalar Bolão LP</p>
           <p className="text-xs text-text-muted">
-            {platform === "ios"
-              ? 'Toque em "Compartilhar" e depois "Adicionar à Tela de Início"'
-              : 'Toque nos 3 pontinhos → "Instalar app"'}
+            {platform === "android" && deferredPrompt
+              ? 'Toque em "Instalar" abaixo'
+              : platform === "android"
+              ? 'Toque nos 3 pontinhos ⋮ → "Instalar app"'
+              : 'Toque em "Compartilhar" 📤 → "Adicionar à Tela de Início"'}
           </p>
         </div>
+        {platform === "android" && deferredPrompt && (
+          <button
+            onClick={handleInstall}
+            className="px-3 py-1.5 bg-primary hover:bg-primary-dark rounded-lg text-xs font-bold text-white transition-colors"
+          >
+            Instalar
+          </button>
+        )}
         <button
           onClick={() => {
             localStorage.setItem("install-banner-dismissed", "true");
