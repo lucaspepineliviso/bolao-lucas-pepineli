@@ -130,6 +130,14 @@ export default function PalpitesPage() {
         >
           🖨️ Imprimir / Salvar PDF
         </button>
+        <a
+          href="https://www.fifa.com/pt/tournaments/mens/worldcup/canadamexicousa2026/scores-fixtures?country=BR&wtw-filter=ALL"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 bg-surface-light hover:bg-primary/20 border border-primary/20 rounded-xl text-sm font-medium text-text-muted transition-colors"
+        >
+          ⚽ Resultado Oficial FIFA
+        </a>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
