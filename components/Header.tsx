@@ -41,7 +41,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-primary/20">
+    <header className="sticky top-0 z-50 bg-surface border-b border-primary/20">
       <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-sm group-hover:animate-pop">
@@ -149,7 +149,7 @@ export default function Header() {
       </div>
 
       {menuOpen && (
-        <div className="md:hidden border-t border-primary/10 bg-surface/95 backdrop-blur-md">
+        <div className="md:hidden border-t border-primary/10 bg-surface">
           <nav className="flex flex-col p-4 gap-2">
             {navLinks.map((link) => (
               <Link
