@@ -58,6 +58,7 @@ export default function NovoPalpitePage() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
   const [openOnly, setOpenOnly] = useState(false);
   const [authorized, setAuthorized] = useState(false);
 
@@ -92,6 +93,20 @@ export default function NovoPalpitePage() {
     return calculateKnockoutTeams(tempScores, matches);
   }, [matches, bets]);
 
+  const uniqueDates = useMemo(() => {
+    const dates = new Set<string>();
+    for (const m of matches) {
+      const d = new Date(m.matchDate);
+      dates.add(d.toISOString().split("T")[0]);
+    }
+    return Array.from(dates).sort();
+  }, [matches]);
+
+  const formatDatePT = (dateStr: string) => {
+    const d = new Date(dateStr + "T12:00:00");
+    return d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  };
+
   const filteredMatches = useMemo(() => {
     let list = matches;
 
@@ -101,6 +116,10 @@ export default function NovoPalpitePage() {
       list = list.filter((m) => m.stage.startsWith("GRUPO"));
     } else if (filter !== "all") {
       list = list.filter((m) => m.stage === filter);
+    }
+
+    if (dateFilter !== "all") {
+      list = list.filter((m) => new Date(m.matchDate).toISOString().split("T")[0] === dateFilter);
     }
 
     if (openOnly) {
@@ -179,6 +198,16 @@ export default function NovoPalpitePage() {
             </button>
           ))}
         </div>
+        <select
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+          className="w-full px-3 py-2 bg-surface-light border border-primary/20 rounded-xl text-xs text-text-muted focus:outline-none focus:border-primary"
+        >
+          <option value="all">Todas as datas</option>
+          {uniqueDates.map((d) => (
+            <option key={d} value={d}>{formatDatePT(d)}</option>
+          ))}
+        </select>
         <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer">
           <input
             type="checkbox"
