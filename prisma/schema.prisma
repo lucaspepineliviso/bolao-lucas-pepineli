@@ -10,16 +10,17 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  role      String    @default("USER")
-  isPremium Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  points    Int       @default(0)
-  bets      Bet[]
-  payments  Payment[]
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String    @unique
+  password   String
+  role       String    @default("USER")
+  isPremium  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  points     Int       @default(0)
+  referrerId Int?
+  bets       Bet[]
+  payments   Payment[]
 }
 
 model Match {

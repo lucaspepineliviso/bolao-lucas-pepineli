@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Celebration from "@/components/Celebration";
 import { setToken } from "@/lib/client-auth";
 
 export default function CadastroPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get("ref");
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,10 +24,17 @@ export default function CadastroPage() {
     setLoading(true);
 
     try {
+      const body: { name: string; email: string; password: string; referrerId?: string } = {
+        name,
+        email,
+        password,
+      };
+      if (ref) body.referrerId = ref;
+
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
@@ -48,6 +58,11 @@ export default function CadastroPage() {
           </div>
           <h1 className="text-2xl font-bold">Criar Conta</h1>
           <p className="text-text-muted text-sm mt-1">Entre no bolão!</p>
+          {ref && (
+            <p className="text-primary text-xs font-medium mt-2">
+              Você foi convidado por um amigo!
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

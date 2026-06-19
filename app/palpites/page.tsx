@@ -23,6 +23,11 @@ interface Bet {
   };
 }
 
+interface User {
+  id: number;
+  name: string;
+}
+
 const STAGE_ORDER = [
   "GRUPO A", "GRUPO B", "GRUPO C", "GRUPO D", "GRUPO E", "GRUPO F",
   "GRUPO G", "GRUPO H", "GRUPO I", "GRUPO J", "GRUPO K", "GRUPO L",
@@ -42,15 +47,20 @@ const STAGE_LABELS: Record<string, string> = {
 export default function PalpitesPage() {
   const router = useRouter();
   const [bets, setBets] = useState<Bet[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    fetch("/api/bets")
-      .then((res) => {
-        if (!res.ok) throw new Error("Não autorizado");
-        return res.json();
+    Promise.all([
+      fetch("/api/bets").then((r) => r.json()),
+      fetch("/api/auth/me").then((r) => r.json()).catch(() => null),
+    ])
+      .then(([userBets, userData]) => {
+        if (!userData || userData.error) { router.push("/login"); return; }
+        setBets(userBets);
+        setUser(userData);
       })
-      .then(setBets)
       .catch(() => router.push("/login"))
       .finally(() => setLoading(false));
   }, [router]);
@@ -121,6 +131,33 @@ export default function PalpitesPage() {
           <p className="text-xs text-text-muted">Pontos</p>
         </div>
       </div>
+
+      {user && (
+        <div className="mb-6 bg-surface rounded-2xl p-4 border border-primary/20">
+          <p className="text-sm font-bold mb-2">🔗 Convide seus amigos!</p>
+          <p className="text-xs text-text-muted mb-3">Compartilhe seu link e ganhe amigos no bolão</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              readOnly
+              value={`${typeof window !== "undefined" ? window.location.origin : ""}/cadastro?ref=${user.id}`}
+              className="flex-1 px-3 py-2 bg-surface-light border border-primary/20 rounded-lg text-xs text-text-muted truncate"
+            />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  `${window.location.origin}/cadastro?ref=${user.id}`
+                );
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="px-4 py-2 bg-primary hover:bg-primary-dark rounded-lg text-xs font-bold text-white transition-colors shrink-0"
+            >
+              {copied ? "✅ Copiado" : "Copiar"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {openBets.length > 0 && (
         <div className="mb-6">

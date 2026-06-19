@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Período de cadastro encerrado. Novos cadastros só são permitidos durante a fase de grupos." }, { status: 403 });
     }
 
-    const { name, email, password } = await request.json();
+    const { name, email, password, referrerId } = await request.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Preencha todos os campos" }, { status: 400 });
@@ -25,10 +25,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email já cadastrado" }, { status: 400 });
     }
 
+    let referrer = null;
+    if (referrerId) {
+      referrer = await prisma.user.findUnique({ where: { id: parseInt(referrerId) } });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        referrerId: referrer ? referrer.id : null,
+      },
     });
 
     const token = generateToken({ userId: user.id, email: user.email, role: user.role });
