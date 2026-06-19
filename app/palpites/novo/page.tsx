@@ -93,10 +93,16 @@ export default function NovoPalpitePage() {
     return calculateKnockoutTeams(tempScores, matches);
   }, [matches, bets]);
 
+  const toBRTDateStr = (isoStr: string) => {
+    const d = new Date(isoStr);
+    const brt = new Date(d.getTime() - 3 * 60 * 60 * 1000);
+    return brt.toISOString().split("T")[0];
+  };
+
   const uniqueDates = useMemo(() => {
     const dates = new Set<string>();
     for (const m of matches) {
-      dates.add(m.matchDate.split("T")[0]);
+      dates.add(toBRTDateStr(m.matchDate));
     }
     return Array.from(dates).sort();
   }, [matches]);
@@ -118,7 +124,7 @@ export default function NovoPalpitePage() {
     }
 
     if (dateFilter !== "all") {
-      list = list.filter((m) => m.matchDate.split("T")[0] === dateFilter);
+      list = list.filter((m) => toBRTDateStr(m.matchDate) === dateFilter);
     }
 
     if (openOnly) {
