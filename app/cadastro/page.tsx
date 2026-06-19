@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Celebration from "@/components/Celebration";
 import { setToken } from "@/lib/client-auth";
 
-export default function CadastroPage() {
+function CadastroForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const ref = searchParams.get("ref");
@@ -128,5 +128,17 @@ export default function CadastroPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+        <div className="w-full max-w-sm text-center text-text-muted">Carregando...</div>
+      </div>
+    }>
+      <CadastroForm />
+    </Suspense>
   );
 }
