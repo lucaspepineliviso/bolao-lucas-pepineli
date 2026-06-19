@@ -127,7 +127,7 @@ export default function NovoPalpitePage() {
     }
 
     return list;
-  }, [matches, filter, openOnly]);
+  }, [matches, filter, dateFilter, openOnly]);
 
   const grouped = useMemo(() => {
     return STAGE_ORDER.reduce(
@@ -198,16 +198,19 @@ export default function NovoPalpitePage() {
             </button>
           ))}
         </div>
-        <select
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-          className="w-full px-3 py-2 bg-surface-light border border-primary/20 rounded-xl text-xs text-text-muted focus:outline-none focus:border-primary"
-        >
-          <option value="all">Todas as datas</option>
-          {uniqueDates.map((d) => (
-            <option key={d} value={d}>{formatDatePT(d)}</option>
-          ))}
-        </select>
+        <div>
+          <label className="text-xs text-text-muted font-medium mb-1 block">📅 Filtrar por data</label>
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="w-full px-4 py-3 bg-surface-light border-2 border-primary/30 rounded-xl text-sm font-medium text-text focus:outline-none focus:border-primary transition-colors"
+          >
+            <option value="all">Todas as datas</option>
+            {uniqueDates.map((d) => (
+              <option key={d} value={d}>{formatDatePT(d)}</option>
+            ))}
+          </select>
+        </div>
         <label className="flex items-center gap-2 text-xs text-text-muted cursor-pointer">
           <input
             type="checkbox"
