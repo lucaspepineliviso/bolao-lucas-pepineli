@@ -96,8 +96,7 @@ export default function NovoPalpitePage() {
   const uniqueDates = useMemo(() => {
     const dates = new Set<string>();
     for (const m of matches) {
-      const d = new Date(m.matchDate);
-      dates.add(d.toISOString().split("T")[0]);
+      dates.add(m.matchDate.split("T")[0]);
     }
     return Array.from(dates).sort();
   }, [matches]);
@@ -119,7 +118,7 @@ export default function NovoPalpitePage() {
     }
 
     if (dateFilter !== "all") {
-      list = list.filter((m) => new Date(m.matchDate).toISOString().split("T")[0] === dateFilter);
+      list = list.filter((m) => m.matchDate.split("T")[0] === dateFilter);
     }
 
     if (openOnly) {
