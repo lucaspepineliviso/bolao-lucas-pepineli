@@ -109,7 +109,7 @@ export default function NovoPalpitePage() {
 
   const formatDatePT = (dateStr: string) => {
     const d = new Date(dateStr + "T12:00:00");
-    return d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+    return d.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Sao_Paulo" });
   };
 
   const filteredMatches = useMemo(() => {

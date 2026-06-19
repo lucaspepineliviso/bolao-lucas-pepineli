@@ -35,8 +35,8 @@ export default function MatchCard({ match, onBetPlaced }: { match: Match; onBetP
             {match.stage} {match.groupName && `- ${match.groupName}`}
           </span>
           <span className="text-xs text-text-muted">
-            {matchDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}{" "}
-            {matchDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            {matchDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", timeZone: "America/Sao_Paulo" })}{" "}
+            {matchDate.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
           </span>
         </div>
 

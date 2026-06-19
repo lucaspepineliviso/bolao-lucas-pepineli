@@ -218,7 +218,7 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                   <span className="text-xs font-medium bg-surface-light px-2.5 py-1 rounded-full text-text-muted truncate max-w-[60%]">{match.stage}{match.groupName ? " - " + match.groupName : ""}</span>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs text-text-muted">{new Date(match.matchDate).toLocaleDateString("pt-BR")}</span>
+                    <span className="text-xs text-text-muted">{new Date(match.matchDate).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}</span>
                     <button onClick={() => openEdit(match)} className="text-xs text-accent hover:text-accent/80 transition-colors">
                       Editar
                     </button>

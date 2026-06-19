@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       data: {
         homeTeam,
         awayTeam,
-        matchDate: new Date(matchDate),
+        matchDate: new Date(matchDate + (matchDate.includes("Z") || matchDate.includes("+") || matchDate.includes("-", 10) ? "" : "-03:00")),
         stage,
         groupName: groupName || null,
       },
@@ -125,7 +125,7 @@ export async function PATCH(request: Request) {
     const data: Record<string, unknown> = {};
     if (homeTeam !== undefined) data.homeTeam = homeTeam;
     if (awayTeam !== undefined) data.awayTeam = awayTeam;
-    if (matchDate !== undefined) data.matchDate = new Date(matchDate);
+    if (matchDate !== undefined) data.matchDate = new Date(matchDate + (matchDate.includes("Z") || matchDate.includes("+") || matchDate.includes("-", 10) ? "" : "-03:00"));
     if (stage !== undefined) data.stage = stage;
     if (groupName !== undefined) data.groupName = groupName;
     if (homeScore !== undefined) data.homeScore = homeScore;

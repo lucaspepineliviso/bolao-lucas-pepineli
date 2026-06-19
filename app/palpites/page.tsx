@@ -199,7 +199,7 @@ export default function PalpitesPage() {
                 >
                   <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
                     <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
-                      {new Date(bet.match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                      {new Date(bet.match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", timeZone: "America/Sao_Paulo" })}
                     </span>
                     <div className="flex items-center gap-2">
                       {bet.match.isFinished && (

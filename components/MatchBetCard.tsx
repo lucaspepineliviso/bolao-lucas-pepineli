@@ -96,8 +96,8 @@ export default function MatchBetCard({
     >
       <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
         <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
-          {new Date(match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}{" "}
-          {new Date(match.matchDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          {new Date(match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", timeZone: "America/Sao_Paulo" })}{" "}
+          {new Date(match.matchDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
         </span>
         {open && !match.isFinished && (
           <span className="text-[11px] font-medium text-primary">{countdown}</span>
