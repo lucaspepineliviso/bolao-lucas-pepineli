@@ -166,10 +166,16 @@ export default function MatchBetCard({
             {initialBet.homeScore}×{initialBet.awayScore} ({pointsDisplay ?? 0} pts)
           </span>
         )}
-        {!saving && !saved && !error && !match.isFinished && hasBet && open && (
-          <span className="text-[11px] text-primary font-medium">
-            {initialBet ? "Edição pendente" : "Palpite pendente"}
-          </span>
+        {!saving && !saved && !error && !match.isFinished && hasBet && open && changed && (
+          <button
+            onClick={saveBet}
+            className="text-[11px] px-3 py-1 bg-primary hover:bg-primary-dark text-white rounded-full font-bold transition-colors"
+          >
+            {initialBet ? "Atualizar" : "Salvar"}
+          </button>
+        )}
+        {!saving && !saved && !error && !match.isFinished && hasBet && open && !changed && initialBet && (
+          <span className="text-[11px] text-success font-medium">✅ Salvo</span>
         )}
       </div>
     </div>
