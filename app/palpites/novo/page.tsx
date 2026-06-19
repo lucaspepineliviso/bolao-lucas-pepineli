@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Celebration from "@/components/Celebration";
 import FailureAnimation from "@/components/FailureAnimation";
+import { calculateKnockoutTeams } from "@/lib/groupCalculator";
 
 interface Match {
   id: number;
@@ -32,6 +33,8 @@ const STAGE_LABELS: Record<string, string> = {
   "QUARTAS": "Quartas de Final", "SEMIFINAL": "Semifinal",
   "3º LUGAR": "3º Lugar", "FINAL": "Final",
 };
+
+const KNOCKOUT_STAGES = ["OITAVAS", "OITAVAS FINAL", "QUARTAS", "SEMIFINAL", "3º LUGAR", "FINAL"];
 
 export default function NovoPalpitePage() {
   const router = useRouter();
@@ -66,6 +69,11 @@ export default function NovoPalpitePage() {
       .finally(() => setLoading(false));
   }, [router]);
 
+  const resolvedKnockoutTeams = useMemo(() => {
+    if (matches.length === 0 || Object.keys(scores).length === 0) return {};
+    return calculateKnockoutTeams(scores, matches);
+  }, [scores, matches]);
+
   function updateScore(matchId: number, side: "home" | "away", value: string) {
     setScores((prev) => ({ ...prev, [matchId]: { ...prev[matchId], [side]: value } }));
   }
@@ -75,6 +83,18 @@ export default function NovoPalpitePage() {
   ).length;
 
   const totalMatches = matches.length;
+
+  const groupFilledCount = useMemo(() => {
+    return matches
+      .filter((m) => m.stage.startsWith("GRUPO"))
+      .filter((m) => scores[m.id]?.home !== "" && scores[m.id]?.away !== "").length;
+  }, [scores, matches]);
+
+  const totalGroupMatches = useMemo(() => {
+    return matches.filter((m) => m.stage.startsWith("GRUPO")).length;
+  }, [matches]);
+
+  const allGroupsFilled = groupFilledCount === totalGroupMatches;
 
   async function handleSave() {
     setErrorMsg("");
@@ -189,77 +209,95 @@ export default function NovoPalpitePage() {
         </div>
       </div>
 
-      {Object.entries(grouped).map(([stage, stageMatches]) => (
-        <div key={stage} className="mb-6">
-          <h2 className="text-base font-bold mb-3 flex items-center gap-2">
-            <span className="w-1 h-5 bg-primary rounded-full" />
-            {STAGE_LABELS[stage] || stage}
-          </h2>
-          <div className="space-y-2">
-            {stageMatches.map((match) => {
-              const isPast = new Date(match.matchDate) < new Date();
-              return (
-                <div
-                  key={match.id}
-                  className={`bg-surface rounded-xl p-3 border transition-all ${
-                    match.isFinished ? "border-success/20" : "border-primary/10"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
-                    <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
-                      {new Date(match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}{" "}
-                      {new Date(match.matchDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="flex-1 text-right">
-                      <p className="font-bold text-sm truncate max-w-[120px] sm:max-w-none ml-auto">{match.homeTeam}</p>
+      {Object.entries(grouped).map(([stage, stageMatches]) => {
+        const isKnockout = KNOCKOUT_STAGES.includes(stage);
+
+        return (
+          <div key={stage} className="mb-6">
+            <h2 className="text-base font-bold mb-3 flex items-center gap-2">
+              <span className="w-1 h-5 bg-primary rounded-full" />
+              {STAGE_LABELS[stage] || stage}
+              {isKnockout && !allGroupsFilled && (
+                <span className="text-xs font-normal text-text-muted ml-2">
+                  (times serão definidos ao preencher os grupos)
+                </span>
+              )}
+            </h2>
+            <div className="space-y-2">
+              {stageMatches.map((match) => {
+                const isPast = new Date(match.matchDate) < new Date();
+                const resolved = resolvedKnockoutTeams[match.id];
+                const displayHome = isKnockout && resolved ? resolved.homeTeam : match.homeTeam;
+                const displayAway = isKnockout && resolved ? resolved.awayTeam : match.awayTeam;
+                const isPlaceholder = displayHome.startsWith("1º") || displayHome.startsWith("2º") || displayHome.startsWith("3º") || displayHome.startsWith("Vencedor") || displayHome.startsWith("Perdedor");
+
+                return (
+                  <div
+                    key={match.id}
+                    className={`bg-surface rounded-xl p-3 border transition-all ${
+                      match.isFinished ? "border-success/20" : "border-primary/10"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                      <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
+                        {new Date(match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}{" "}
+                        {new Date(match.matchDate).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
                     </div>
-                    {match.isFinished ? (
-                      <div className="flex items-center gap-2 bg-surface-light rounded-xl px-4 py-2 shrink-0">
-                        <span className="text-2xl font-black text-success">{match.homeScore}</span>
-                        <span className="text-text-muted">×</span>
-                        <span className="text-2xl font-black text-success">{match.awayScore}</span>
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="flex-1 text-right">
+                        <p className={`font-bold text-sm truncate max-w-[120px] sm:max-w-none ml-auto ${isPlaceholder ? "text-text-muted italic" : ""}`}>
+                          {displayHome}
+                        </p>
                       </div>
-                    ) : isPast ? (
-                      <div className="flex items-center gap-2 bg-surface-light rounded-xl px-4 py-2 shrink-0">
-                        <span className="text-lg font-bold">?</span>
-                        <span className="text-text-muted">×</span>
-                        <span className="text-lg font-bold">?</span>
+                      {match.isFinished ? (
+                        <div className="flex items-center gap-2 bg-surface-light rounded-xl px-4 py-2 shrink-0">
+                          <span className="text-2xl font-black text-success">{match.homeScore}</span>
+                          <span className="text-text-muted">×</span>
+                          <span className="text-2xl font-black text-success">{match.awayScore}</span>
+                        </div>
+                      ) : isPast ? (
+                        <div className="flex items-center gap-2 bg-surface-light rounded-xl px-4 py-2 shrink-0">
+                          <span className="text-lg font-bold">?</span>
+                          <span className="text-text-muted">×</span>
+                          <span className="text-lg font-bold">?</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <input
+                            type="number"
+                            min="0"
+                            max="50"
+                            value={scores[match.id]?.home ?? ""}
+                            onChange={(e) => updateScore(match.id, "home", e.target.value)}
+                            className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-black bg-surface-light border border-primary/20 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all"
+                            placeholder="0"
+                          />
+                          <span className="text-text-muted font-bold">×</span>
+                          <input
+                            type="number"
+                            min="0"
+                            max="50"
+                            value={scores[match.id]?.away ?? ""}
+                            onChange={(e) => updateScore(match.id, "away", e.target.value)}
+                            className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-black bg-surface-light border border-primary/20 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all"
+                            placeholder="0"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className={`font-bold text-sm truncate max-w-[120px] sm:max-w-none ${isPlaceholder ? "text-text-muted italic" : ""}`}>
+                          {displayAway}
+                        </p>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <input
-                          type="number"
-                          min="0"
-                          max="50"
-                          value={scores[match.id]?.home ?? ""}
-                          onChange={(e) => updateScore(match.id, "home", e.target.value)}
-                          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-black bg-surface-light border border-primary/20 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all"
-                          placeholder="0"
-                        />
-                        <span className="text-text-muted font-bold">×</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="50"
-                          value={scores[match.id]?.away ?? ""}
-                          onChange={(e) => updateScore(match.id, "away", e.target.value)}
-                          className="w-12 h-12 sm:w-14 sm:h-14 text-center text-lg sm:text-xl font-black bg-surface-light border border-primary/20 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/30 outline-none transition-all"
-                          placeholder="0"
-                        />
-                      </div>
-                    )}
-                    <div className="flex-1">
-                      <p className="font-bold text-sm truncate max-w-[120px] sm:max-w-none">{match.awayTeam}</p>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div className="sticky bottom-4 z-40 mt-6">
         <button
