@@ -112,9 +112,24 @@ export default function PalpitesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="text-center mb-6">
+      <div className="text-center mb-6 print:hidden">
         <h1 className="text-3xl font-black mb-2">📋 Meus Palpites</h1>
         <p className="text-text-muted text-sm">Relatório completo dos seus palpites</p>
+      </div>
+
+      <div id="print-header" className="hidden print:block print:mb-4 print:text-center">
+        <h1 className="text-xl font-black">Bolão Lucas Pepineli — Copa 2026</h1>
+        <p className="text-sm font-bold">{user?.name}</p>
+        <p className="text-xs text-gray-500">Gerado em {new Date().toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })} às {new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}</p>
+      </div>
+
+      <div className="flex justify-center gap-3 mb-6 print:hidden">
+        <button
+          onClick={() => window.print()}
+          className="px-4 py-2 bg-surface-light hover:bg-primary/20 border border-primary/20 rounded-xl text-sm font-medium text-text-muted transition-colors"
+        >
+          🖨️ Imprimir / Salvar PDF
+        </button>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
@@ -133,7 +148,7 @@ export default function PalpitesPage() {
       </div>
 
       {user && (
-        <div className="mb-6 bg-surface rounded-2xl p-4 border border-primary/20">
+        <div className="mb-6 bg-surface rounded-2xl p-4 border border-primary/20 print:hidden">
           <p className="text-sm font-bold mb-2">🔗 Convide seus amigos!</p>
           <p className="text-xs text-text-muted mb-3">Compartilhe seu link e ganhe amigos no bolão</p>
           <div className="flex items-center gap-2">
@@ -160,7 +175,7 @@ export default function PalpitesPage() {
       )}
 
       {openBets.length > 0 && (
-        <div className="mb-6">
+        <div className="mb-6 print:hidden">
           <Link
             href="/palpites/novo"
             className="block bg-primary/10 border border-primary/30 rounded-2xl p-4 text-center hover:bg-primary/20 transition-colors"
@@ -241,7 +256,7 @@ export default function PalpitesPage() {
                     </div>
                   </div>
                   {!bet.match.isFinished && open && (
-                    <div className="mt-2 text-center">
+                    <div className="mt-2 text-center print:hidden">
                       <Link
                         href="/palpites/novo"
                         className="text-[11px] font-medium text-primary hover:underline"
