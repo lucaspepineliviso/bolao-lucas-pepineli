@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { isBetOpen, timeUntilKickoff } from "@/lib/bet-utils";
 
 interface Bet {
   id: number;
@@ -57,6 +59,8 @@ export default function PalpitesPage() {
   const finishedBets = bets.filter((b) => b.match.isFinished);
   const correctBets = finishedBets.filter((b) => b.points && b.points > 0).length;
 
+  const openBets = bets.filter((b) => isBetOpen(b.match.matchDate) && !b.match.isFinished);
+
   const grouped = STAGE_ORDER.reduce(
     (acc, stage) => {
       const stageBets = bets.filter((b) => b.match.stage === stage);
@@ -87,7 +91,7 @@ export default function PalpitesPage() {
         <div className="bg-surface rounded-2xl p-6 border border-primary/20">
           <p className="text-5xl mb-4">🎯</p>
           <p className="font-bold text-lg mb-2">Nenhum palpite ainda</p>
-          <p className="text-text-muted text-sm mb-4">Preencha seus palpites para todos os 104 jogos da Copa.</p>
+          <p className="text-text-muted text-sm mb-4">Preencha seus palpites para a Copa.</p>
           <button onClick={() => router.push("/palpites/novo")} className="bg-primary hover:bg-primary-dark px-6 py-2.5 rounded-xl text-sm font-bold transition-colors">
             Fazer Palpites
           </button>
@@ -103,7 +107,7 @@ export default function PalpitesPage() {
         <p className="text-text-muted text-sm">Relatório completo dos seus palpites</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="bg-surface rounded-xl p-4 text-center border border-primary/10">
           <p className="text-2xl font-black text-primary">{bets.length}</p>
           <p className="text-xs text-text-muted">Palpites</p>
@@ -118,6 +122,20 @@ export default function PalpitesPage() {
         </div>
       </div>
 
+      {openBets.length > 0 && (
+        <div className="mb-6">
+          <Link
+            href="/palpites/novo"
+            className="block bg-primary/10 border border-primary/30 rounded-2xl p-4 text-center hover:bg-primary/20 transition-colors"
+          >
+            <p className="text-sm font-bold text-primary">✏️ Editar palpites abertos</p>
+            <p className="text-xs text-text-muted mt-1">
+              {openBets.length} jogo{openBets.length > 1 ? "s" : ""} ainda editável{openBets.length > 1 ? "s" : ""}
+            </p>
+          </Link>
+        </div>
+      )}
+
       {Object.entries(grouped).map(([stage, stageBets]) => (
         <div key={stage} className="mb-6">
           <h2 className="text-base font-bold mb-3 flex items-center gap-2">
@@ -125,54 +143,79 @@ export default function PalpitesPage() {
             {STAGE_LABELS[stage] || stage}
           </h2>
           <div className="space-y-2">
-            {stageBets.map((bet) => (
-              <div
-                key={bet.id}
-                className={`bg-surface rounded-xl p-3 border transition-all ${
-                  bet.match.isFinished
-                    ? bet.points && bet.points > 0
-                      ? "border-success/30"
-                      : "border-danger/20"
-                    : "border-primary/10"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
-                  <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
-                    {new Date(bet.match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
-                  </span>
-                  {bet.match.isFinished && (
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                      bet.points && bet.points > 0
-                        ? "bg-success/20 text-success"
-                        : "bg-danger/20 text-danger"
-                    }`}>
-                      {bet.points ?? 0} pts
+            {stageBets.map((bet) => {
+              const open = isBetOpen(bet.match.matchDate);
+              const countdown = timeUntilKickoff(bet.match.matchDate);
+
+              return (
+                <div
+                  key={bet.id}
+                  className={`bg-surface rounded-xl p-3 border transition-all ${
+                    bet.match.isFinished
+                      ? bet.points && bet.points > 0
+                        ? "border-success/30"
+                        : "border-danger/20"
+                      : open
+                      ? "border-primary/20"
+                      : "border-text-muted/20"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                    <span className="text-[11px] font-medium bg-surface-light px-2 py-0.5 rounded-full text-text-muted">
+                      {new Date(bet.match.matchDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                     </span>
+                    <div className="flex items-center gap-2">
+                      {bet.match.isFinished && (
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          bet.points && bet.points > 0
+                            ? "bg-success/20 text-success"
+                            : "bg-danger/20 text-danger"
+                        }`}>
+                          {bet.points ?? 0} pts
+                        </span>
+                      )}
+                      {!bet.match.isFinished && open && (
+                        <span className="text-[11px] font-medium text-primary">{countdown}</span>
+                      )}
+                      {!bet.match.isFinished && !open && (
+                        <span className="text-[11px] font-medium text-text-muted">🔒 Travado</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 text-right">
+                      <p className="font-bold text-sm truncate">{bet.match.homeTeam}</p>
+                    </div>
+                    <div className="flex items-center gap-2 mx-3">
+                      <span className="bg-primary/20 text-primary px-3 py-1 rounded-lg text-sm font-bold">
+                        {bet.homeScore} × {bet.awayScore}
+                      </span>
+                      {bet.match.isFinished && (
+                        <>
+                          <span className="text-text-muted text-xs">→</span>
+                          <span className="bg-surface-light px-3 py-1 rounded-lg text-sm font-bold">
+                            {bet.match.homeScore} × {bet.match.awayScore}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-sm truncate">{bet.match.awayTeam}</p>
+                    </div>
+                  </div>
+                  {!bet.match.isFinished && open && (
+                    <div className="mt-2 text-center">
+                      <Link
+                        href="/palpites/novo"
+                        className="text-[11px] font-medium text-primary hover:underline"
+                      >
+                        Editar →
+                      </Link>
+                    </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 text-right">
-                    <p className="font-bold text-sm truncate">{bet.match.homeTeam}</p>
-                  </div>
-                  <div className="flex items-center gap-2 mx-3">
-                    <span className="bg-primary/20 text-primary px-3 py-1 rounded-lg text-sm font-bold">
-                      {bet.homeScore} × {bet.awayScore}
-                    </span>
-                    {bet.match.isFinished && (
-                      <>
-                        <span className="text-text-muted text-xs">→</span>
-                        <span className="bg-surface-light px-3 py-1 rounded-lg text-sm font-bold">
-                          {bet.match.homeScore} × {bet.match.awayScore}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-sm truncate">{bet.match.awayTeam}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}

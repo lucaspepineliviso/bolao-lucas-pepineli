@@ -6,57 +6,70 @@ export async function POST(request: Request) {
   try {
     const user = await requireAuth();
 
-    const groupStageEnd = new Date("2026-06-28T00:00:00-03:00");
-    if (new Date() > groupStageEnd) {
-      return NextResponse.json({ error: "Prazo encerrado. Não é mais possível palpitar." }, { status: 403 });
-    }
-
-    const existingBets = await prisma.bet.count({ where: { userId: user.id } });
-    if (existingBets > 0) {
-      return NextResponse.json({ error: "Você já salvou seus palpites. Não é possível alterar." }, { status: 403 });
-    }
-
     const { bets } = await request.json();
     if (!bets || !Array.isArray(bets) || bets.length === 0) {
       return NextResponse.json({ error: "Envie pelo menos um palpite" }, { status: 400 });
     }
 
+    const matchIds = bets.map((b: { matchId: number }) => b.matchId).filter(Boolean);
+    const matches = await prisma.match.findMany({
+      where: { id: { in: matchIds } },
+    });
+    const matchMap = new Map(matches.map((m) => [m.id, m]));
+
     const now = new Date();
-    const results = { saved: 0, errors: 0, messages: [] as string[] };
+    const results: { matchId: number; status: string }[] = [];
+    let saved = 0;
+    let skipped = 0;
+    let errors = 0;
+
+    const validBets: { userId: number; matchId: number; homeScore: number; awayScore: number }[] = [];
 
     for (const bet of bets) {
       const { matchId, homeScore, awayScore } = bet;
+
       if (!matchId || homeScore === undefined || awayScore === undefined) {
-        results.errors++;
+        results.push({ matchId, status: "error" });
+        errors++;
         continue;
       }
 
-      const match = await prisma.match.findUnique({ where: { id: matchId } });
+      const match = matchMap.get(matchId);
       if (!match) {
-        results.messages.push(`Jogo ${matchId} não encontrado`);
-        results.errors++;
-        continue;
-      }
-
-      if (match.isFinished) {
-        results.messages.push(`"${match.homeTeam} vs ${match.awayTeam}" já encerrou`);
-        results.errors++;
+        results.push({ matchId, status: "error" });
+        errors++;
         continue;
       }
 
       if (new Date(match.matchDate) < now) {
-        results.messages.push(`"${match.homeTeam} vs ${match.awayTeam}" já começou`);
-        results.errors++;
+        results.push({ matchId, status: "skipped" });
+        skipped++;
         continue;
       }
 
-      await prisma.bet.create({
-        data: { userId: user.id, matchId, homeScore, awayScore },
+      validBets.push({
+        userId: user.id,
+        matchId,
+        homeScore: parseInt(String(homeScore)) || 0,
+        awayScore: parseInt(String(awayScore)) || 0,
       });
-      results.saved++;
+      results.push({ matchId, status: "saved" });
+      saved++;
     }
 
-    return NextResponse.json(results);
+    if (validBets.length > 0) {
+      await prisma.$transaction(
+        validBets.map((bet) =>
+          prisma.bet.upsert({
+            where: { userId_matchId: { userId: bet.userId, matchId: bet.matchId } },
+            update: { homeScore: bet.homeScore, awayScore: bet.awayScore },
+            create: { userId: bet.userId, matchId: bet.matchId, homeScore: bet.homeScore, awayScore: bet.awayScore },
+          })
+        )
+      );
+    }
+
+    return NextResponse.json({ summary: { saved, skipped, errors }, results });
   } catch (error) {
     if (error instanceof Error && error.message === "Não autorizado") {
       return NextResponse.json({ error: "Faça login para palpitar" }, { status: 401 });

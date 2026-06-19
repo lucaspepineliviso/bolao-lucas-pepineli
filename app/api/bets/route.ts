@@ -16,13 +16,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Jogo não encontrado" }, { status: 404 });
     }
 
-    if (match.isFinished) {
-      return NextResponse.json({ error: "Jogo já encerrado" }, { status: 400 });
-    }
-
-    const matchDate = new Date(match.matchDate);
-    if (matchDate < new Date()) {
-      return NextResponse.json({ error: "Jogo já começou" }, { status: 400 });
+    if (new Date(match.matchDate) < new Date()) {
+      return NextResponse.json({ error: "Prazo encerrado. Este jogo já começou." }, { status: 403 });
     }
 
     const existing = await prisma.bet.findUnique({
