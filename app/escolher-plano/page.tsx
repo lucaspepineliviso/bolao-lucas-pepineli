@@ -1,11 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function EscolherPlanoPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [deadlinePassed, setDeadlinePassed] = useState(false);
+
+  useEffect(() => {
+    const now = new Date();
+    const deadline = new Date("2026-06-28T23:59:59-03:00");
+    if (now > deadline) {
+      setDeadlinePassed(true);
+    }
+  }, []);
 
   async function handleFree() {
     router.push("/");
@@ -57,20 +66,25 @@ export default function EscolherPlanoPage() {
 
           <button
             onClick={handlePremium}
-            disabled={loading}
-            className="bg-primary/10 border border-primary/30 rounded-2xl p-6 text-left hover:bg-primary/20 transition-all group text-center"
+            disabled={loading || deadlinePassed}
+            className="bg-primary/10 border border-primary/30 rounded-2xl p-6 text-left hover:bg-primary/20 transition-all group text-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <div className="text-4xl mb-3">👑</div>
             <h2 className="text-xl font-bold mb-2">Premium</h2>
             <p className="text-primary font-black text-2xl mb-2">R$ 10</p>
             <p className="text-text-muted text-sm mb-4">Concorra ao prêmio!</p>
+            {deadlinePassed ? (
+              <p className="text-danger text-xs font-bold mb-4">⏰ Prazo encerrado em 28/06/2026</p>
+            ) : (
+              <p className="text-accent text-xs font-bold mb-4">⏰ Prazo: até 28/06/2026</p>
+            )}
             <ul className="text-xs text-left space-y-2 mb-6">
               <li className="flex items-center gap-2">✓ Palpites em todos os jogos</li>
               <li className="flex items-center gap-2">✓ Ranking premium exclusivo</li>
               <li className="flex items-center gap-2">✓ Concorre ao prêmio final</li>
             </ul>
             <div className="bg-primary rounded-xl py-2.5 text-sm font-medium group-hover:bg-primary-dark transition-colors disabled:opacity-50">
-              {loading ? "Processando..." : "Quero Premium"}
+              {deadlinePassed ? "Prazo Encerrado" : loading ? "Processando..." : "Quero Premium"}
             </div>
           </button>
         </div>

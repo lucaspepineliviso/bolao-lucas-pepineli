@@ -6,6 +6,12 @@ export async function POST() {
   try {
     const user = await requireAuth();
 
+    const now = new Date();
+    const deadline = new Date("2026-06-28T23:59:59-03:00");
+    if (now > deadline) {
+      return NextResponse.json({ error: "Prazo para se tornar premium encerrado em 28/06/2026" }, { status: 400 });
+    }
+
     const alreadyPaid = await prisma.payment.findFirst({
       where: { userId: user.id, status: "paid" },
     });

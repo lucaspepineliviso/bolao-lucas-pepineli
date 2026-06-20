@@ -41,6 +41,7 @@ export default function RegrasPage() {
             <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
               <h3 className="font-bold text-lg mb-1">👑 Premium — R$ 10</h3>
               <p className="text-xs text-text-muted mb-2">Para quem quer concorrer ao prêmio</p>
+              <p className="text-xs text-danger font-bold mb-2">⏰ Prazo: até 28/06/2026 (fim da fase de grupos)</p>
               <ul className="text-xs space-y-1">
                 <li>✓ Palpites em todos os jogos</li>
                 <li>✓ Ranking premium exclusivo</li>
@@ -234,6 +235,7 @@ export default function RegrasPage() {
             <li>• <strong>Admin:</strong> O organizador do bolão (Lucas Pepineli) é o administrador e responsável por inserir os resultados oficiais.</li>
             <li>• <strong>Prêmio:</strong> Apenas participantes <strong>Premium</strong> concorrem ao prêmio. O valor é calculado automaticamente: 80% do total arrecadado com as inscrições premium. O pagamento é feito via Pix pelo organizador em até 7 dias após a final.</li>
             <li>• <strong>Plano Premium:</strong> Para se tornar premium, acesse o menu do usuário e clique em "Seja Premium". O valor de R$ 10 é pago via Pix para o organizador. Após a confirmação, sua conta é liberada automaticamente.</li>
+            <li>• <strong>Prazo para Premium:</strong> A opção de se tornar premium está disponível apenas até o <strong>dia 28 de Junho de 2026</strong> (fim da fase de grupos). Após essa data, não será mais possível alterar o plano. Participantes gratuitos permanecerão gratuitos até o final da Copa.</li>
           </ul>
         </section>
 
