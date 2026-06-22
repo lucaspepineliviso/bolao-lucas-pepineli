@@ -182,19 +182,19 @@ export default function PalpitesPage() {
         </div>
       )}
 
-      {openBets.length > 0 && (
-        <div className="mb-6 print:hidden">
-          <Link
-            href="/palpites/novo"
-            className="block bg-primary/10 border border-primary/30 rounded-2xl p-4 text-center hover:bg-primary/20 transition-colors"
-          >
-            <p className="text-sm font-bold text-primary">✏️ Editar palpites abertos</p>
-            <p className="text-xs text-text-muted mt-1">
-              {openBets.length} jogo{openBets.length > 1 ? "s" : ""} ainda editável{openBets.length > 1 ? "s" : ""}
-            </p>
-          </Link>
-        </div>
-      )}
+      <div className="mb-6 print:hidden">
+        <Link
+          href="/palpites/novo"
+          className="block bg-primary/10 border border-primary/30 rounded-2xl p-4 text-center hover:bg-primary/20 transition-colors"
+        >
+          <p className="text-sm font-bold text-primary">🎯 Fazer ou editar palpites</p>
+          <p className="text-xs text-text-muted mt-1">
+            {openBets.length > 0
+              ? `${openBets.length} jogo${openBets.length > 1 ? "s" : ""} ainda editável${openBets.length > 1 ? "s" : ""}`
+              : "Acesse e escolha a data para palpitar"}
+          </p>
+        </Link>
+      </div>
 
       {Object.entries(grouped).map(([stage, stageBets]) => (
         <div key={stage} className="mb-6">
