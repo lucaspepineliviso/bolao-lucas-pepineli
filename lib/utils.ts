@@ -5,7 +5,8 @@ export function calculatePoints(
   realAway: number,
   isKnockout: boolean = false,
   betClassified?: string | null,
-  realClassified?: string | null
+  realClassified?: string | null,
+  isFinal: boolean = false
 ): number {
   let pts = 0;
 
@@ -36,7 +37,7 @@ export function calculatePoints(
     }
 
     if (userChoice && realClassified && userChoice === realClassified) {
-      pts += 3;
+      pts += isFinal ? 10 : 3;
     }
   }
 

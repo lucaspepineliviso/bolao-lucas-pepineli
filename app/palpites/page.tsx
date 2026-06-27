@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isBetOpen, timeUntilKickoff } from "@/lib/bet-utils";
+import Celebration from "@/components/Celebration";
 
 interface Bet {
   id: number;
@@ -50,6 +51,7 @@ export default function PalpitesPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [celebrationMessage, setCelebrationMessage] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -60,6 +62,23 @@ export default function PalpitesPage() {
         if (!userData || userData.error) { router.push("/login"); return; }
         setBets(userBets);
         setUser(userData);
+
+        // Verifica bônus de Campeão para comemoração
+        const finalBet = userBets.find((b: any) => b.match.stage === "FINAL");
+        if (finalBet && finalBet.match.isFinished && finalBet.match.classifiedWinner) {
+          let userChoice = finalBet.classifiedChoice;
+          if (!userChoice) {
+            if (finalBet.homeScore > finalBet.awayScore) userChoice = "HOME";
+            else if (finalBet.awayScore > finalBet.homeScore) userChoice = "AWAY";
+          }
+          if (userChoice && finalBet.match.classifiedWinner && userChoice === finalBet.match.classifiedWinner) {
+            const alreadyCelebrated = localStorage.getItem("celebrated_champion");
+            if (!alreadyCelebrated) {
+              const teamName = finalBet.match.classifiedWinner === "HOME" ? finalBet.match.homeTeam : finalBet.match.awayTeam;
+              setCelebrationMessage(`Parabéns! Você acertou que o ${teamName} seria Campeão da Copa de 2026! 🏆`);
+            }
+          }
+        }
       })
       .catch(() => router.push("/login"))
       .finally(() => setLoading(false));
@@ -112,6 +131,15 @@ export default function PalpitesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      {celebrationMessage && (
+        <Celebration
+          message={celebrationMessage}
+          onFinish={() => {
+            localStorage.setItem("celebrated_champion", "true");
+            setCelebrationMessage("");
+          }}
+        />
+      )}
       <div className="text-center mb-6 print:hidden">
         <h1 className="text-3xl font-black mb-2">📋 Meus Palpites</h1>
         <p className="text-text-muted text-sm">Relatório completo dos seus palpites</p>

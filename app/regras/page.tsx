@@ -160,6 +160,13 @@ export default function RegrasPage() {
               </div>
               <span className="text-2xl font-black text-danger">0 pts</span>
             </div>
+            <div className="bg-surface-light rounded-xl p-4 border border-primary/20 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-primary">🏆 Bônus de Classificação (Mata-mata)</p>
+                <p className="text-xs text-text-muted">Acertar quem passa de fase (ganha +10 pts se for na grande Final da Copa)</p>
+              </div>
+              <span className="text-2xl font-black text-primary">+3 / +10 pts</span>
+            </div>
           </div>
         </section>
 
@@ -208,7 +215,7 @@ export default function RegrasPage() {
             <li className="flex items-start gap-3 bg-surface-light rounded-xl p-3">
               <span className="bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
               <div>
-                <p className="font-medium">Menos palpites em branco</p>
+                <p className="font-medium">Menos palpites faltantes</p>
                 <p className="text-xs text-text-muted">Quem menos deixou de palpitar</p>
               </div>
             </li>
@@ -230,10 +237,11 @@ export default function RegrasPage() {
           <ul className="space-y-2 text-sm leading-relaxed text-text-muted">
             <li>• <strong>Prazo:</strong> Os palpites podem ser feitos ou alterados até o apito inicial de cada partida. Após o início do jogo, o palpite é congelado.</li>
             <li>• <strong>Jogos encerrados:</strong> Quando o admin inserir o resultado real, os pontos são calculados automaticamente.</li>
-            <li>• <strong>Mata-mata:</strong> Nos jogos eliminatórios (Oitavas, Quartas, Semifinal e Final), considere apenas o placar do tempo normal (incluindo acréscimos). Prorrogação e pênaltis não contam para o palpite.</li>
+            <li>• <strong>Mata-mata:</strong> Nos jogos eliminatórios, o palpite principal é no placar do tempo regulamentar (90 min + acréscimos). Se você palpitar um **empate**, abrirá um campo adicional para escolher qual time se classifica. Acertar o classificado garante um **bônus de +3 pontos**. Para palpites de vitória regulamentar (ex: 2x1), o vencedor já é considerado seu classificado implicitamente (garantindo também o bônus de +3 se ele passar).</li>
+            <li>• <strong>Super Final:</strong> Na grande Final da Copa do Mundo 2026, o bônus por acertar o time Campeão (o classificado da Final) é ampliado para **+10 pontos**, tornando a decisão pelo título ainda mais disputada e emocionante!</li>
             <li>• <strong>Integridade:</strong> Cada participante pode ter apenas uma conta. Contas duplicadas serão removidas.</li>
             <li>• <strong>Admin:</strong> O organizador do bolão (Lucas Pepineli) é o administrador e responsável por inserir os resultados oficiais.</li>
-            <li>• <strong>Prêmio:</strong> Apenas participantes <strong>Premium</strong> concorrem ao prêmio. O valor é calculado automaticamente: 80% do total arrecadado com as inscrições premium. O pagamento é feito via Pix pelo organizador em até 7 dias após a final.</li>
+            <li>• <strong>Prêmio:</strong> Apenas participantes <strong>Premium</strong> concorrem ao prêmio. O valor é calculated automaticamente: 80% do total arrecadado com as inscrições premium. O pagamento é feito via Pix pelo organizador em até 7 dias após a final.</li>
             <li>• <strong>Plano Premium:</strong> Para se tornar premium, acesse o menu do usuário e clique em "Seja Premium". O valor de R$ 10 é pago via Pix para o organizador. Após a confirmação, sua conta é liberada automaticamente.</li>
             <li>• <strong>Prazo para Premium:</strong> A opção de se tornar premium está disponível apenas até o <strong>dia 28 de Junho de 2026</strong> (fim da fase de grupos). Após essa data, não será mais possível alterar o plano. Participantes gratuitos permanecerão gratuitos até o final da Copa.</li>
           </ul>

@@ -71,6 +71,7 @@ export async function PUT(request: Request) {
 
     if (oldMatch && oldMatch.isFinished && oldMatch.homeScore !== null && oldMatch.awayScore !== null) {
       const isKnockout = !oldMatch.stage.startsWith("GRUPO");
+      const isFinal = oldMatch.stage === "FINAL";
       for (const bet of oldMatch.bets) {
         const oldPoints = calculatePoints(
           bet.homeScore,
@@ -79,7 +80,8 @@ export async function PUT(request: Request) {
           oldMatch.awayScore,
           isKnockout,
           bet.classifiedChoice,
-          oldMatch.classifiedWinner
+          oldMatch.classifiedWinner,
+          isFinal
         );
         await prisma.user.update({
           where: { id: bet.userId },
@@ -100,6 +102,7 @@ export async function PUT(request: Request) {
     });
 
     const isKnockout = !match.stage.startsWith("GRUPO");
+    const isFinal = match.stage === "FINAL";
 
     for (const bet of match.bets) {
       const points = calculatePoints(
@@ -109,7 +112,8 @@ export async function PUT(request: Request) {
         awayScore,
         isKnockout,
         bet.classifiedChoice,
-        classifiedWinner
+        classifiedWinner,
+        isFinal
       );
 
       await prisma.bet.update({
