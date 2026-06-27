@@ -15,7 +15,7 @@ export async function GET() {
     const ranking = users.map((user) => {
       const exactHits = user.bets.filter((b) => b.points === 10).length;
       const fivePtBets = user.bets.filter((b) => b.points === 5).length;
-      const blankBets = user.bets.filter((b) => b.points === null).length;
+      const missingBets = 104 - user.bets.length;
 
       return {
         id: user.id,
@@ -24,7 +24,7 @@ export async function GET() {
         betCount: user.bets.length,
         exactHits,
         fivePtBets,
-        blankBets,
+        missingBets,
         isPremium: user.isPremium,
         createdAt: user.createdAt,
       };
@@ -34,7 +34,7 @@ export async function GET() {
       if (b.points !== a.points) return b.points - a.points;
       if (b.exactHits !== a.exactHits) return b.exactHits - a.exactHits;
       if (b.fivePtBets !== a.fivePtBets) return b.fivePtBets - a.fivePtBets;
-      if (a.blankBets !== b.blankBets) return a.blankBets - b.blankBets;
+      if (a.missingBets !== b.missingBets) return a.missingBets - b.missingBets;
       return a.createdAt.getTime() - b.createdAt.getTime();
     });
 

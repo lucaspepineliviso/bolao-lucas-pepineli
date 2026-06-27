@@ -58,7 +58,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     await requireAdmin();
-    const { matchId, homeScore, awayScore } = await request.json();
+    const { matchId, homeScore, awayScore, classifiedWinner } = await request.json();
 
     if (!matchId || homeScore === undefined || awayScore === undefined) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
@@ -70,8 +70,17 @@ export async function PUT(request: Request) {
     });
 
     if (oldMatch && oldMatch.isFinished && oldMatch.homeScore !== null && oldMatch.awayScore !== null) {
+      const isKnockout = !oldMatch.stage.startsWith("GRUPO");
       for (const bet of oldMatch.bets) {
-        const oldPoints = calculatePoints(bet.homeScore, bet.awayScore, oldMatch.homeScore, oldMatch.awayScore);
+        const oldPoints = calculatePoints(
+          bet.homeScore,
+          bet.awayScore,
+          oldMatch.homeScore,
+          oldMatch.awayScore,
+          isKnockout,
+          bet.classifiedChoice,
+          oldMatch.classifiedWinner
+        );
         await prisma.user.update({
           where: { id: bet.userId },
           data: { points: { decrement: oldPoints } },
@@ -85,12 +94,23 @@ export async function PUT(request: Request) {
         homeScore,
         awayScore,
         isFinished: true,
+        classifiedWinner: classifiedWinner || null,
       },
       include: { bets: true },
     });
 
+    const isKnockout = !match.stage.startsWith("GRUPO");
+
     for (const bet of match.bets) {
-      const points = calculatePoints(bet.homeScore, bet.awayScore, homeScore, awayScore);
+      const points = calculatePoints(
+        bet.homeScore,
+        bet.awayScore,
+        homeScore,
+        awayScore,
+        isKnockout,
+        bet.classifiedChoice,
+        classifiedWinner
+      );
 
       await prisma.bet.update({
         where: { id: bet.id },

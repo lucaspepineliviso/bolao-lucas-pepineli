@@ -2,19 +2,45 @@ export function calculatePoints(
   betHome: number,
   betAway: number,
   realHome: number,
-  realAway: number
+  realAway: number,
+  isKnockout: boolean = false,
+  betClassified?: string | null,
+  realClassified?: string | null
 ): number {
-  if (betHome === realHome && betAway === realAway) return 10;
+  let pts = 0;
 
-  const betWinner = betHome > betAway ? "HOME" : betAway > betHome ? "AWAY" : "DRAW";
-  const realWinner = realHome > realAway ? "HOME" : realAway > realHome ? "AWAY" : "DRAW";
+  // Cálculo clássico (tempo regulamentar)
+  if (betHome === realHome && betAway === realAway) {
+    pts = 10;
+  } else {
+    const betWinner = betHome > betAway ? "HOME" : betAway > betHome ? "AWAY" : "DRAW";
+    const realWinner = realHome > realAway ? "HOME" : realAway > realHome ? "AWAY" : "DRAW";
 
-  if (betWinner === realWinner) {
-    if (betHome === realHome || betAway === realAway) return 5;
-    return 3;
+    if (betWinner === realWinner) {
+      if (betHome === realHome || betAway === realAway) {
+        pts = 5;
+      } else {
+        pts = 3;
+      }
+    } else {
+      pts = 0;
+    }
   }
 
-  return 0;
+  // Bônus de classificado no mata-mata
+  if (isKnockout) {
+    let userChoice = betClassified;
+    if (!userChoice) {
+      if (betHome > betAway) userChoice = "HOME";
+      else if (betAway > betHome) userChoice = "AWAY";
+    }
+
+    if (userChoice && realClassified && userChoice === realClassified) {
+      pts += 3;
+    }
+  }
+
+  return pts;
 }
 
 export function formatDate(date: Date): string {

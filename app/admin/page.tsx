@@ -87,9 +87,20 @@ export default function AdminPage() {
     const home = parseInt((document.getElementById(`home-${matchId}`) as HTMLInputElement).value);
     const away = parseInt((document.getElementById(`away-${matchId}`) as HTMLInputElement).value);
     if (isNaN(home) || isNaN(away)) return;
+
+    let classifiedWinner: string | null = null;
+    const classifiedEl = document.getElementById(`classified-${matchId}`) as HTMLSelectElement | null;
+    if (classifiedEl) {
+      classifiedWinner = classifiedEl.value || null;
+      if (home === away && !classifiedWinner) {
+        alert("Para empates no mata-mata, selecione quem se classificou!");
+        return;
+      }
+    }
+
     const res = await fetch("/api/admin/matches", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ matchId, homeScore: home, awayScore: away }),
+      body: JSON.stringify({ matchId, homeScore: home, awayScore: away, classifiedWinner }),
     });
     if (res.ok) loadMatches();
   }
@@ -282,6 +293,24 @@ export default function AdminPage() {
                   )}
                   <div className="flex-1 font-bold text-sm sm:text-base truncate max-w-[30%]">{match.awayTeam}</div>
                 </div>
+                {!match.isFinished && !match.stage.startsWith("GRUPO") && (
+                  <div className="mt-3 text-center text-xs">
+                    <label className="text-text-muted font-bold block mb-1">Quem se classificou?</label>
+                    <select
+                      id={`classified-${match.id}`}
+                      className="px-3 py-1.5 bg-surface-light border border-primary/20 rounded-lg font-semibold text-text focus:outline-none focus:border-primary"
+                    >
+                      <option value="">(Selecione em caso de Empate)</option>
+                      <option value="HOME">👈 {match.homeTeam}</option>
+                      <option value="AWAY">{match.awayTeam} 👉</option>
+                    </select>
+                  </div>
+                )}
+                {match.isFinished && !match.stage.startsWith("GRUPO") && match.classifiedWinner && (
+                  <div className="mt-2 text-center text-xs text-text-muted">
+                    Classificado oficial: <strong className="text-success">{match.classifiedWinner === "HOME" ? match.homeTeam : match.awayTeam}</strong>
+                  </div>
+                )}
                 {!match.isFinished && (
                   <button onClick={() => handleSetResult(match.id)} className="mt-3 w-full py-2 rounded-xl text-sm font-medium bg-success hover:bg-success/80 transition-colors">
                     Encerrar e Calcular Pontos

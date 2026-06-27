@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth";
 export async function POST(request: Request) {
   try {
     const user = await requireAuth();
-    const { matchId, homeScore, awayScore } = await request.json();
+    const { matchId, homeScore, awayScore, classifiedChoice } = await request.json();
 
     if (!matchId || homeScore === undefined || awayScore === undefined) {
       return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
@@ -27,11 +27,11 @@ export async function POST(request: Request) {
     if (existing) {
       await prisma.bet.update({
         where: { id: existing.id },
-        data: { homeScore, awayScore },
+        data: { homeScore, awayScore, classifiedChoice: classifiedChoice || null },
       });
     } else {
       await prisma.bet.create({
-        data: { userId: user.id, matchId, homeScore, awayScore },
+        data: { userId: user.id, matchId, homeScore, awayScore, classifiedChoice: classifiedChoice || null },
       });
     }
 

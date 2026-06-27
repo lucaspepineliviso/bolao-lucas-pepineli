@@ -14,6 +14,7 @@ interface Match {
   homeScore: number | null;
   awayScore: number | null;
   isFinished: boolean;
+  classifiedWinner?: string | null;
 }
 
 interface Bet {
@@ -21,6 +22,7 @@ interface Bet {
   homeScore: number;
   awayScore: number;
   points: number | null;
+  classifiedChoice?: string | null;
 }
 
 export default function MatchBetCard({
@@ -34,6 +36,7 @@ export default function MatchBetCard({
 }) {
   const [homeScore, setHomeScore] = useState(initialBet?.homeScore?.toString() ?? "");
   const [awayScore, setAwayScore] = useState(initialBet?.awayScore?.toString() ?? "");
+  const [classifiedChoice, setClassifiedChoice] = useState<string | null>(initialBet?.classifiedChoice ?? null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -41,11 +44,19 @@ export default function MatchBetCard({
   const open = isBetOpen(match.matchDate);
   const countdown = timeUntilKickoff(match.matchDate);
 
-  const hasBet = homeScore !== "" && awayScore !== "";
-  const changed =
-    initialBet
-      ? homeScore !== initialBet.homeScore.toString() || awayScore !== initialBet.awayScore.toString()
-      : hasBet;
+  const isKnockout = !match.stage.startsWith("GRUPO");
+  const isDraw = homeScore !== "" && awayScore !== "" && parseInt(homeScore) === parseInt(awayScore);
+
+  const hasBet =
+    homeScore !== "" &&
+    awayScore !== "" &&
+    (!isKnockout || !isDraw || (classifiedChoice !== null && classifiedChoice !== ""));
+
+  const changed = initialBet
+    ? homeScore !== initialBet.homeScore.toString() ||
+      awayScore !== initialBet.awayScore.toString() ||
+      (isKnockout && isDraw && (classifiedChoice ?? "") !== (initialBet.classifiedChoice ?? ""))
+    : hasBet;
 
   const saveBet = useCallback(async () => {
     if (!hasBet || saving) return;
@@ -59,6 +70,7 @@ export default function MatchBetCard({
           matchId: match.id,
           homeScore: parseInt(homeScore) || 0,
           awayScore: parseInt(awayScore) || 0,
+          classifiedChoice: isKnockout && isDraw ? classifiedChoice : null,
         }),
       });
       if (!res.ok) {
@@ -76,16 +88,57 @@ export default function MatchBetCard({
     } finally {
       setSaving(false);
     }
-  }, [hasBet, saving, homeScore, awayScore, match.id, onBetSaved]);
+  }, [hasBet, saving, homeScore, awayScore, match.id, isKnockout, isDraw, classifiedChoice, onBetSaved]);
+
+  const chooseClassified = async (choice: "HOME" | "AWAY") => {
+    if (!open) return;
+    setClassifiedChoice(choice);
+    setError("");
+    setSaved(false);
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/bets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId: match.id,
+          homeScore: parseInt(homeScore) || 0,
+          awayScore: parseInt(awayScore) || 0,
+          classifiedChoice: choice,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erro ao salvar");
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      onBetSaved?.();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleBlur = () => {
-    if (changed) saveBet();
+    const canAutoSave = !isKnockout || !isDraw || (classifiedChoice !== null && classifiedChoice !== "");
+    if (changed && canAutoSave) saveBet();
   };
 
   let pointsDisplay = null;
   if (match.isFinished && initialBet && match.homeScore !== null && match.awayScore !== null) {
-    const pts = calculatePoints(initialBet.homeScore, initialBet.awayScore, match.homeScore, match.awayScore);
-    pointsDisplay = pts;
+    const isMatchKnockout = !match.stage.startsWith("GRUPO");
+    pointsDisplay = calculatePoints(
+      initialBet.homeScore,
+      initialBet.awayScore,
+      match.homeScore,
+      match.awayScore,
+      isMatchKnockout,
+      initialBet.classifiedChoice,
+      match.classifiedWinner
+    );
   }
 
   return (
@@ -151,6 +204,48 @@ export default function MatchBetCard({
         </div>
       </div>
 
+      {isKnockout && isDraw && !match.isFinished && (
+        <div className="mt-3 p-3 bg-surface-light rounded-xl border border-primary/10 text-center">
+          <p className="text-[11px] font-bold mb-2 text-text-muted">Quem se classifica nos pênaltis/prorrogação?</p>
+          <div className="flex justify-center gap-2">
+            <button
+              type="button"
+              disabled={!open || saving}
+              onClick={() => chooseClassified("HOME")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                classifiedChoice === "HOME"
+                  ? "bg-primary text-white scale-105 shadow-md shadow-primary/20"
+                  : "bg-surface hover:bg-primary/15 text-text-muted"
+              } disabled:opacity-50`}
+            >
+              👈 {match.homeTeam}
+            </button>
+            <button
+              type="button"
+              disabled={!open || saving}
+              onClick={() => chooseClassified("AWAY")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                classifiedChoice === "AWAY"
+                  ? "bg-primary text-white scale-105 shadow-md shadow-primary/20"
+                  : "bg-surface hover:bg-primary/15 text-text-muted"
+              } disabled:opacity-50`}
+            >
+              {match.awayTeam} 👉
+            </button>
+          </div>
+        </div>
+      )}
+
+      {match.isFinished && initialBet && match.classifiedWinner && isKnockout && (
+        <div className="mt-2 text-center text-[10px] text-text-muted">
+          Vencedor oficial: <strong className="text-success">{match.classifiedWinner === "HOME" ? match.homeTeam : match.awayTeam}</strong>
+          {" | "}
+          Seu classificado: <strong className={initialBet.classifiedChoice === match.classifiedWinner ? "text-success" : "text-danger"}>
+            {initialBet.classifiedChoice ? (initialBet.classifiedChoice === "HOME" ? match.homeTeam : match.awayTeam) : "Nenhum (Venda regulamentar)"}
+          </strong>
+        </div>
+      )}
+
       <div className="mt-2 text-center h-5">
         {saving && <span className="text-[11px] text-text-muted">Salvando...</span>}
         {saved && <span className="text-[11px] text-success font-medium">✅ Salvo</span>}
@@ -163,7 +258,11 @@ export default function MatchBetCard({
                 : "bg-danger/20 text-danger"
             }`}
           >
-            {initialBet.homeScore}×{initialBet.awayScore} ({pointsDisplay ?? 0} pts)
+            Seu palpite: {initialBet.homeScore}×{initialBet.awayScore}
+            {isKnockout && initialBet.homeScore === initialBet.awayScore && initialBet.classifiedChoice && (
+              ` (${initialBet.classifiedChoice === "HOME" ? "passa " + match.homeTeam.slice(0, 3) : "passa " + match.awayTeam.slice(0, 3)})`
+            )}
+            {` | ${pointsDisplay ?? 0} pts`}
           </span>
         )}
         {!saving && !saved && !error && !match.isFinished && hasBet && open && changed && (
@@ -176,6 +275,9 @@ export default function MatchBetCard({
         )}
         {!saving && !saved && !error && !match.isFinished && hasBet && open && !changed && initialBet && (
           <span className="text-[11px] text-success font-medium">✅ Salvo</span>
+        )}
+        {!saving && !saved && !error && !match.isFinished && isDraw && isKnockout && !classifiedChoice && (
+          <span className="text-[11px] text-accent font-semibold">Escolha quem se classifica</span>
         )}
       </div>
     </div>

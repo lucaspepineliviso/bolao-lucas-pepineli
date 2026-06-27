@@ -23,10 +23,10 @@ export async function POST(request: Request) {
     let skipped = 0;
     let errors = 0;
 
-    const validBets: { userId: number; matchId: number; homeScore: number; awayScore: number }[] = [];
+    const validBets: { userId: number; matchId: number; homeScore: number; awayScore: number; classifiedChoice?: string | null }[] = [];
 
     for (const bet of bets) {
-      const { matchId, homeScore, awayScore } = bet;
+      const { matchId, homeScore, awayScore, classifiedChoice } = bet;
 
       if (!matchId || homeScore === undefined || awayScore === undefined) {
         results.push({ matchId, status: "error" });
@@ -52,6 +52,7 @@ export async function POST(request: Request) {
         matchId,
         homeScore: parseInt(String(homeScore)) || 0,
         awayScore: parseInt(String(awayScore)) || 0,
+        classifiedChoice: classifiedChoice || null,
       });
       results.push({ matchId, status: "saved" });
       saved++;
@@ -62,8 +63,8 @@ export async function POST(request: Request) {
         validBets.map((bet) =>
           prisma.bet.upsert({
             where: { userId_matchId: { userId: bet.userId, matchId: bet.matchId } },
-            update: { homeScore: bet.homeScore, awayScore: bet.awayScore },
-            create: { userId: bet.userId, matchId: bet.matchId, homeScore: bet.homeScore, awayScore: bet.awayScore },
+            update: { homeScore: bet.homeScore, awayScore: bet.awayScore, classifiedChoice: bet.classifiedChoice },
+            create: { userId: bet.userId, matchId: bet.matchId, homeScore: bet.homeScore, awayScore: bet.awayScore, classifiedChoice: bet.classifiedChoice },
           })
         )
       );

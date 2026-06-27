@@ -16,6 +16,7 @@ interface Match {
   homeScore: number | null;
   awayScore: number | null;
   isFinished: boolean;
+  classifiedWinner?: string | null;
 }
 
 interface Bet {

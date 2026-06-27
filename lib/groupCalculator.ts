@@ -107,7 +107,7 @@ export function selectBestThirdPlaced(
     return b.gf - a.gf;
   });
 
-  return thirds.slice(0, 4);
+  return thirds.slice(0, 8);
 }
 
 export function calculateKnockoutTeams(
@@ -136,16 +136,13 @@ export function calculateKnockoutTeams(
   }
 
   const bestThird = selectBestThirdPlaced(groupResults);
-  const bestThirdMap = new Map<string, string>();
-  bestThird.forEach((t, i) => {
-    bestThirdMap.set(t.team, `3º Melhor ${i + 1}`);
-  });
+  let thirdIndex = 0;
 
   for (const match of allMatches) {
     if (match.stage === "GRUPO") continue;
 
-    const homeTeam = match.homeTeam;
-    const awayTeam = match.awayTeam;
+    let home = match.homeTeam;
+    let away = match.awayTeam;
 
     const resolve = (placeholder: string): string => {
       const groupMatch = placeholder.match(/^([123])º ([A-L])$/);
@@ -157,19 +154,24 @@ export function calculateKnockoutTeams(
         if (position === "2") return groupResult.second;
         if (position === "3") return groupResult.third;
       }
-
-      if (placeholder === "3º Melhor") {
-        const thirdMatch = match.homeTeam === "3º Melhor" ? match.homeTeam : match.awayTeam;
-        const mapped = bestThirdMap.get(thirdMatch);
-        if (mapped) return mapped;
-      }
-
       return placeholder;
     };
 
+    home = resolve(home);
+    away = resolve(away);
+
+    if (home === "3º Melhor") {
+      home = bestThird[thirdIndex]?.team || "3º Melhor";
+      thirdIndex++;
+    }
+    if (away === "3º Melhor") {
+      away = bestThird[thirdIndex]?.team || "3º Melhor";
+      thirdIndex++;
+    }
+
     result[match.id] = {
-      homeTeam: resolve(homeTeam),
-      awayTeam: resolve(awayTeam),
+      homeTeam: home,
+      awayTeam: away,
     };
   }
 

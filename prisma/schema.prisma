@@ -33,6 +33,7 @@ model Match {
   homeScore Int?
   awayScore Int?
   isFinished Boolean @default(false)
+  classifiedWinner String?
   bets      Bet[]
 }
 
@@ -43,6 +44,7 @@ model Bet {
   homeScore Int
   awayScore Int
   points    Int?
+  classifiedChoice String?
   createdAt DateTime @default(now())
 
   user  User  @relation(fields: [userId], references: [id])
