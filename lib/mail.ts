@@ -43,6 +43,7 @@ export async function sendResetPasswordEmail(email: string, resetUrl: string): P
       return true;
     } catch (error) {
       console.error("Erro ao enviar e-mail via SMTP:", error);
+      throw error;
     }
   }
 
@@ -68,9 +69,11 @@ export async function sendResetPasswordEmail(email: string, resetUrl: string): P
       } else {
         const errText = await res.text();
         console.error("Erro da API Resend:", errText);
+        throw new Error(`Erro da API Resend: ${errText}`);
       }
     } catch (error) {
       console.error("Erro ao enviar e-mail via Resend:", error);
+      throw error;
     }
   }
 
