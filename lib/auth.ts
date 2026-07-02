@@ -10,6 +10,12 @@ export interface JwtPayload {
   role: string;
 }
 
+export interface ResetJwtPayload {
+  userId: number;
+  email: string;
+  passSig: string;
+}
+
 export function generateToken(payload: JwtPayload): string {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
@@ -21,6 +27,20 @@ export function verifyToken(token: string): JwtPayload | null {
     return null;
   }
 }
+
+export function generateResetToken(userId: number, email: string, passwordHash: string): string {
+  const passSig = passwordHash.slice(-10);
+  return jwt.sign({ userId, email, passSig }, JWT_SECRET, { expiresIn: "1h" });
+}
+
+export function verifyResetToken(token: string): ResetJwtPayload | null {
+  try {
+    return jwt.verify(token, JWT_SECRET) as ResetJwtPayload;
+  } catch {
+    return null;
+  }
+}
+
 
 export async function getTokenFromRequest() {
   const headerStore = await headers();
